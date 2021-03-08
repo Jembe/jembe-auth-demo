@@ -1,0 +1,2 @@
+FLASK_APP=jembe_auth_demo
+FLASK_ENV=development
