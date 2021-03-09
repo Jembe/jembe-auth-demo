@@ -1,5 +1,5 @@
-  <nav class="bg-white shadow-sm">
-    <div class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+  <nav class="bg-white shadow-sm" jmb-local="{componentsOnPage: []}" jmb-on:jembe-update-page.camel.window="$local.componentsOnPage = $jmb.componentsOnPage()">
+    <div id="test" class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
       <div class="flex justify-between h-16">
         <div class="flex">
           <div class="flex items-center flex-shrink-0">
@@ -7,17 +7,47 @@
             <img class="hidden w-auto h-8 lg:block" src="https://tailwindui.com/img/logos/workflow-logo-indigo-600-mark-gray-800-text.svg" alt="Workflow">
           </div>
           <div class="hidden sm:-my-px sm:ml-6 sm:flex sm:space-x-8">
-            <!-- Current: "border-indigo-500 text-gray-900", Default: "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" -->
+            {# <!-- Current: "border-indigo-500 text-gray-900", Default: "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" -->
             <a href="#" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 border-b-2 border-indigo-500">Dashboard</a>
 
             <a href="#" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 border-b-2 border-transparent hover:text-gray-700 hover:border-gray-300">Team</a>
 
             <a href="#" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 border-b-2 border-transparent hover:text-gray-700 hover:border-gray-300">Projects</a>
 
-            <a href="#" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 border-b-2 border-transparent hover:text-gray-700 hover:border-gray-300">Calendar</a>
-            <a href="{{jembe_url('/main/dash')}}" jmb-on.click.stop.prevent="{{jembe_jrl('/main/dash')}}" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 border-b-2 border-transparent hover:text-gray-700 hover:border-gray-300">Dash</a>
-            <a href="{{jembe_url('/main/users')}}" jmb-on.click.stop.prevent="{{jembe_jrl('/main/users')}}" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 border-b-2 border-transparent hover:text-gray-700 hover:border-gray-300">Users</a>
-            <a href="{{jembe_url('/main/groups')}}" jmb-on.click.stop.prevent="{{jembe_jrl('/main/groups')}}" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 border-b-2 border-transparent hover:text-gray-700 hover:border-gray-300">Groups</a>
+            <a href="#" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 border-b-2 border-transparent hover:text-gray-700 hover:border-gray-300">Calendar</a> #}
+            {% if component('/main').component('dash').is_accessible() %}
+            <a href="{{component().url}}" 
+              jmb-on:click.stop.prevent="{{component().jrl}}" 
+              class="inline-flex items-center px-1 pt-1 text-sm font-medium border-b-2"
+              jmb-bind:class="{
+                'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': !$local.componentsOnPage.includes('{{component().exec_name}}'),
+                'border-indigo-500 text-gray-900':  $local.componentsOnPage.includes('{{component().exec_name}}')
+              }">
+              Dashboard
+            </a>
+            {% endif %}
+            {% if component('/main').component('users').is_accessible() %}
+            <a href="{{component().url}}" 
+              jmb-on:click.stop.prevent="{{component().jrl}}" 
+              class="inline-flex items-center px-1 pt-1 text-sm font-medium border-b-2"
+              jmb-bind:class="{
+                'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': !$local.componentsOnPage.includes('{{component().exec_name}}'),
+                'border-indigo-500 text-gray-900':  $local.componentsOnPage.includes('{{component().exec_name}}')
+              }">
+              Users
+            </a>
+            {% endif %}
+            {% if component('/main').component('groups').is_accessible() %}
+            <a href="{{component().url}}" 
+              jmb-on:click.stop.prevent="{{component().jrl}}" 
+              class="inline-flex items-center px-1 pt-1 text-sm font-medium border-b-2"
+              jmb-bind:class="{
+                'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': !$local.componentsOnPage.includes('{{component().exec_name}}'),
+                'border-indigo-500 text-gray-900':  $local.componentsOnPage.includes('{{component().exec_name}}')
+              }">
+              Groups
+            </a>
+            {% endif %}
           </div>
         </div>
         <div class="hidden sm:ml-6 sm:flex sm:items-center">
