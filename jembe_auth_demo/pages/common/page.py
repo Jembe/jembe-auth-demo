@@ -4,7 +4,7 @@ from jembe import Component, listener, config
 from .page_title import PageTitle
 from .menu import Menu
 from .confirmation import Confirmation
-from .notifications import Notifications
+from .notifications import Notifications, SystemErrorNotification
 
 if TYPE_CHECKING:
     from jembe import Event, CConfigRedisplayFlag, ComponentConfig, ComponentRef
@@ -48,6 +48,8 @@ class Page(Component):
                 components["_confirmation"] = Confirmation
             if "_notifications" not in components:
                 components["_notifications"] = Notifications
+            if "_syserror" not in components:
+                components["_syserror"] = SystemErrorNotification
 
             super().__init__(
                 template=template,

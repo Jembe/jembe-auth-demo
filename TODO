@@ -1,3 +1,19 @@
+MenuLink support nesting, component specifided by lambda expression, etc:
+    ✔ When group active if has active child @done(21-03-10 21:20)
+    When item active:
+    ✔ If componet has component with exec_name on page @done(21-03-10 21:19)
+    ✔ If not component when url.pathname === location.pathname @done(21-03-10 21:19)
+    ✔ active is determinet with jmb-on events in html not on server @done(21-03-10 21:19)
+    -- just code don't need to test it
+    Think about how to handle icons:
+        ☐ Support only svg icons
+        ☐ svg iccons needs to be able to change class atributed by menu template
+        ☐ no need to support font icons (let dev just use svg)
+Handle no network or network error:
+    ✔ client raise event jembePageUpdateError @done(21-03-11 00:13)
+    ✔ Default handler just print it at console @done(21-03-11 00:13)
+    ✔ Page html adds on event handler and displays modal modal has jmb-ignore attribute to be ignored by merge @done(21-03-11 00:13)
+
 ☐ Create user, user profile and group models
 ☐ Create PageComponent with notifications menues and etc.
 ☐ Store session to db or memcached

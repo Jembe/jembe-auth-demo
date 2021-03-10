@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING, Optional, Union, Iterable, Dict, Callable, Tuple
+from urllib.parse import urlparse
 from functools import cached_property
 from uuid import uuid4
 from jembe import Component
@@ -24,15 +25,22 @@ class MenuItem:
         title: Optional[Union[str, Callable[["MenuItem"], str]]] = None,
         *items: "MenuItem"
     ) -> None:
+        self.id = str(uuid4())
+        self.parents_ids: List[str] = []
         self._url = url
         self._jrl = jrl
         self._is_accessible = is_accessible
-        self._title = title if title is not None else str(uuid4())
+        self._title = title if title is not None else self.id
 
         self.items = items
+        for item in items:
+            item.parents_ids.append(self.id)
+
         self.is_group = len(items) > 0
 
         self._component: Optional[str] = None
+
+
 
     @property
     def url(self) -> Optional[str]:
@@ -42,6 +50,12 @@ class MenuItem:
             return self._url
         else:
             return self._url(self)
+
+    @property
+    def pathname(self) -> Optional[str]:
+        if self.is_group or self.is_component:
+            return None
+        return urlparse(self.url).path
 
     @property
     def jrl(self) -> Optional[str]:
@@ -94,6 +108,10 @@ class MenuItem:
             return cr
         else:
             raise NotImplementedError()
+
+    @property
+    def is_component(self) -> bool:
+        return self._component is not None
 
     @property
     def exec_name(self) -> Optional[str]:
