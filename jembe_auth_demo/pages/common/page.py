@@ -2,12 +2,13 @@ from typing import Callable, Dict, Iterable, TYPE_CHECKING, Optional, Tuple, Uni
 from functools import cached_property
 from jembe import Component, listener, config
 from .page_title import PageTitle
-from .main_menu import MainMenu
+from .menu import Menu
 from .confirmation import Confirmation
 from .notifications import Notifications
 
 if TYPE_CHECKING:
     from jembe import Event, CConfigRedisplayFlag, ComponentConfig, ComponentRef
+    from .menu import MenuItem
 
 __all__ = ("Page",)
 
@@ -18,6 +19,7 @@ class Page(Component):
         def __init__(
             self,
             page_title: str = "",
+            main_menu_items: Optional[Iterable["MenuItem"]] = None,
             template: Optional[Union[str, Iterable[str]]] = None,
             components: Optional[Dict[str, "ComponentRef"]] = None,
             inject_into_components: Optional[
@@ -36,7 +38,12 @@ class Page(Component):
             if "_title" not in components:
                 components["_title"] = (PageTitle, PageTitle.Config(title=page_title))
             if "_main_menu" not in components:
-                components["_main_menu"] = MainMenu
+                components["_main_menu"] = (
+                    Menu,
+                    Menu.Config(
+                        items=main_menu_items, template="common/main_menu.html"
+                    ),
+                )
             if "_confirmation" not in components:
                 components["_confirmation"] = Confirmation
             if "_notifications" not in components:
@@ -56,7 +63,7 @@ class Page(Component):
             return tuple(
                 name
                 for name in self.components_configs.keys()
-                if not name.startswith("_") 
+                if not name.startswith("_")
             )
 
     _config: "Config"

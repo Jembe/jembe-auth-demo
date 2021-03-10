@@ -1,7 +1,3 @@
-☐ Create configurable menu
-    MenuItem(name, c. url="{{component.url}}", jrl="{{component().jrl}}..., is_accessible= "component('/asdf').is_accessible()", "Title", "Icon","HelpText" [Submenues])
-    MenuItem(name, "component('/asdf')", title, icon, help_text, [subitems])
-    GlobalNavigationService so that all compnents/pages can register its menu items???
 ☐ Create user, user profile and group models
 ☐ Create PageComponent with notifications menues and etc.
 ☐ Store session to db or memcached

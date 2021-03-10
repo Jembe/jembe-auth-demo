@@ -7,47 +7,19 @@
             <img class="hidden w-auto h-8 lg:block" src="https://tailwindui.com/img/logos/workflow-logo-indigo-600-mark-gray-800-text.svg" alt="Workflow">
           </div>
           <div class="hidden sm:-my-px sm:ml-6 sm:flex sm:space-x-8">
-            {# <!-- Current: "border-indigo-500 text-gray-900", Default: "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" -->
-            <a href="#" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 border-b-2 border-indigo-500">Dashboard</a>
-
-            <a href="#" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 border-b-2 border-transparent hover:text-gray-700 hover:border-gray-300">Team</a>
-
-            <a href="#" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 border-b-2 border-transparent hover:text-gray-700 hover:border-gray-300">Projects</a>
-
-            <a href="#" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 border-b-2 border-transparent hover:text-gray-700 hover:border-gray-300">Calendar</a> #}
-            {% if component('/main').component('dash').is_accessible() %}
-            <a href="{{component().url}}" 
-              jmb-on:click.stop.prevent="{{component().jrl}}" 
+            {% for mi in _config.items  %}
+            {% if mi.is_accessible %}
+            <a href="{{mi.url}}" 
+              jmb-on:click.stop.prevent="{{mi.jrl}}" 
               class="inline-flex items-center px-1 pt-1 text-sm font-medium border-b-2"
               jmb-bind:class="{
-                'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': !$local.componentsOnPage.includes('{{component().exec_name}}'),
-                'border-indigo-500 text-gray-900':  $local.componentsOnPage.includes('{{component().exec_name}}')
+                'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': !$local.componentsOnPage.includes('{{mi.exec_name}}'),
+                'border-indigo-500 text-gray-900':  $local.componentsOnPage.includes('{{mi.exec_name}}')
               }">
-              Dashboard
+              {{mi.title}}
             </a>
             {% endif %}
-            {% if component('/main').component('users').is_accessible() %}
-            <a href="{{component().url}}" 
-              jmb-on:click.stop.prevent="{{component().jrl}}" 
-              class="inline-flex items-center px-1 pt-1 text-sm font-medium border-b-2"
-              jmb-bind:class="{
-                'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': !$local.componentsOnPage.includes('{{component().exec_name}}'),
-                'border-indigo-500 text-gray-900':  $local.componentsOnPage.includes('{{component().exec_name}}')
-              }">
-              Users
-            </a>
-            {% endif %}
-            {% if component('/main').component('groups').is_accessible() %}
-            <a href="{{component().url}}" 
-              jmb-on:click.stop.prevent="{{component().jrl}}" 
-              class="inline-flex items-center px-1 pt-1 text-sm font-medium border-b-2"
-              jmb-bind:class="{
-                'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': !$local.componentsOnPage.includes('{{component().exec_name}}'),
-                'border-indigo-500 text-gray-900':  $local.componentsOnPage.includes('{{component().exec_name}}')
-              }">
-              Groups
-            </a>
-            {% endif %}
+            {% endfor %}
           </div>
         </div>
         <div class="hidden sm:ml-6 sm:flex sm:items-center">
