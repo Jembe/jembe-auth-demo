@@ -1,1 +1,9 @@
 <h1>Groups</h1>
+{% for column in columns  %}
+    {{column.key}}
+{% endfor %}
+{% for record in data %}
+    <div>
+    {{record}}
+    </div>
+{% endfor %}

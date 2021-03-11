@@ -12,7 +12,6 @@ from .auth import Groups, Users
             MenuItem.for_component("/main/dash", "Dashboard"),
             MenuItem.for_component("/main/users", "Users"),
             MenuItem.for_component("/main/groups", "Groups"),
-            MenuItem("/main/test", "$jmb.component('/main').component('test')", title="Test")
         ],
         components={
             "dash": Dashboard,

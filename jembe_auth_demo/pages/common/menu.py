@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional, Union, Iterable, Dict, Callable, Tuple
+from typing import TYPE_CHECKING, Optional, Union, Iterable, Dict, Callable, Tuple, List
 from urllib.parse import urlparse
 from functools import cached_property
 from uuid import uuid4
@@ -55,7 +55,7 @@ class MenuItem:
     def pathname(self) -> Optional[str]:
         if self.is_group or self.is_component:
             return None
-        return urlparse(self.url).path
+        return str(urlparse(self.url).path)
 
     @property
     def jrl(self) -> Optional[str]:
