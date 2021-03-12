@@ -1,50 +1,43 @@
 from jembe_auth_demo.db import db
-from sqlalchemy.sql.expression import true
+import sqlalchemy as sa
 
 __all__ = (
     "User",
     "Group",
 )
 
-user_groups = db.Table(
-    "user_group",
-    db.Column("user_id", db.Integer, db.ForeignKey("users.id"), primary_key=True),
-    db.Column("group_id", db.Integer, db.ForeignKey("groups.id"), primary_key=True),
+users_groups = db.Table(
+    "users_groups",
+    sa.Column("user_id", sa.Integer, sa.ForeignKey("users.id"), primary_key=True),
+    sa.Column("group_id", sa.Integer, sa.ForeignKey("groups.id"), primary_key=True),
 )
 
 
 class User(db.Model):
     __tablename__ = "users"
-    id = db.Column(db.Integer, primary_key=True)
-    active = db.Column(
-        db.Boolean(),
-        nullable=False,
-        server_default=true(),
-        default=True,
+    __table_args__ = dict(info=dict(verbose_name="User", verbose_name_plurkal="Users"))
+
+    id = sa.Column(sa.Integer, primary_key=True)
+    active = sa.Column(
+        sa.Boolean, nullable=False, default=True, server_default=sa.true()
     )
 
     # authorization
-    email = db.Column(db.String(255, collation="NOCASE"), nullable=False, unique=True)
-    email_confirmed_at = db.Column(db.DateTime())
-    password = db.Column(db.String(255), nullable=False, server_default="", default="")
+    email = sa.Column(sa.String(255, collation="NOCASE"), nullable=False, unique=True)
+    email_confirmed_at = sa.Column(sa.DateTime)
+    password = sa.Column(sa.String(255), nullable=False, server_default="", default="")
 
     # user info
-    first_name = db.Column(
-        db.String(100, collation="NOCASE"), nullable=False, server_default=""
-    )
-    last_name = db.Column(
-        db.String(100, collation="NOCASE"), nullable=False, server_default=""
-    )
+    first_name = sa.Column(sa.String(75), nullable=False, server_default="", default="")
+    last_name = sa.Column(sa.String(75), nullable=False, server_default="", default="")
 
     # groups
-    groups = db.relationship(
+    groups = sa.orm.relationship(
         "Group",
-        secondary=user_groups,
+        secondary=users_groups,
         lazy="subquery",
-        backref=db.backref("users", lazy=True),
+        backref=sa.orm.backref("users", lazy=True),
     )
-
-    __table_args__ = dict(info=dict(verbose_name="User", verbose_name_plurkal="Users"))
 
     def __str__(self) -> str:
         return "{} {}".format(self.first_name, self.last_name)
@@ -52,12 +45,12 @@ class User(db.Model):
 
 class Group(db.Model):
     __tablename__ = "groups"
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(75), nullable=False)
-    title = db.Column(db.String(75), nullable=False)
-    description = db.Column(db.Text)
-
     __table_args__ = dict(info=dict(verbose_name="Group", verbose_name_plural="Groups"))
+
+    id = sa.Column(sa.Integer, primary_key=True)
+    name = sa.Column(sa.String(50), nullable=False, unique=True)
+    title = sa.Column(sa.String(255), nullable=False, unique=True)
+    description = sa.Column(sa.Text)
 
     def __str__(self) -> str:
         return self.title
