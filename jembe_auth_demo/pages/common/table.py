@@ -2,11 +2,12 @@ from typing import TYPE_CHECKING, Optional, Union, Iterable, Dict, Callable, Tup
 from math import ceil
 import sqlalchemy as sa
 from sqlalchemy.orm.attributes import QueryableAttribute
-from jembe import Component, config
+from jembe import Component
 
 if TYPE_CHECKING:
     from flask import Response
     from flask_sqlalchemy import SQLAlchemy
+    from sqlalchemy.sql.elements import ColumnElement
     from jembe import ComponentConfig, ComponentRef, RedisplayFlag
 
 __all__ = ("CTable", "TableColumn")
@@ -60,6 +61,7 @@ class CTable(Component):
             db: "SQLAlchemy",
             query: sa.orm.Query,
             columns: Iterable["TableColumn"],
+            default_filter: Optional[Callable[[str], "ColumnElement"]] = None,
             template: Optional[Union[str, Iterable[str]]] = None,
             components: Optional[Dict[str, "ComponentRef"]] = None,
             inject_into_components: Optional[
@@ -81,6 +83,10 @@ class CTable(Component):
                 url_query_params["p"] = "page"
             if "page_size" not in url_query_params.values():
                 url_query_params["ps"] = "page_size"
+            if "search_query" not in url_query_params.values():
+                url_query_params["q"] = "search_query"
+
+            self.default_filter = default_filter
 
             super().__init__(
                 template=template,
@@ -93,11 +99,17 @@ class CTable(Component):
 
     _config: Config
 
-    def __init__(self, order_by: int = 0, page: int = 1, page_size: int = 10):
+    def __init__(
+        self,
+        order_by: int = 0,
+        page: int = 1,
+        page_size: int = 10,
+        search_query: Optional[str] = None,
+    ):
         super().__init__()
 
     # TODO
-    # filter them
+    # advance filters
     # select them
     # execute action on them
     def display(self) -> Union[str, "Response"]:
@@ -107,6 +119,15 @@ class CTable(Component):
             ob = self._config.columns[abs(self.state.order_by) - 1].query_attribute
             ob = ob if self.state.order_by > 0 else ob.desc()
             query = query.order_by(None).order_by(ob)
+
+        # default filter
+        if self._config.default_filter is not None and self.state.search_query:
+            filter = sa.sql.true()
+            for word in self.state.search_query.split():
+                if word:
+                    filter = filter & self._config.default_filter(word)
+            query = query.filter(filter)
+
         # paginate
         self.total_records = query.count()
         self.total_pages = ceil(self.total_records / self.state.page_size)
@@ -114,11 +135,12 @@ class CTable(Component):
             self.state.page = 1
         if self.state.page >= self.total_pages:
             self.state.page = self.total_pages
-        self.start_record_index = (self.state.page - 1 )  * self.state.page_size
-        self.end_record_index = self.start_record_index  + self.state.page_size
+        self.start_record_index = (self.state.page - 1) * self.state.page_size
+        self.end_record_index = self.start_record_index + self.state.page_size
         if self.end_record_index > self.total_records:
             self.end_record_index = self.total_pages
 
-        self.data = query[self.start_record_index:self.end_record_index]
+
+        self.data = query[self.start_record_index : self.end_record_index]
 
         return super().display()
