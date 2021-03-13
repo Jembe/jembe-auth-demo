@@ -13,7 +13,7 @@ __all__ = ("Groups",)
     CTable.Config(
         # TODO find ways to pickup default db automaticaly
         db=db,
-        query=sa.orm.Query(Group),
+        query=sa.orm.Query(Group).order_by(Group.id),
         # query=sa.orm.Query((Group.id, Group.name, Group.title, Group.description)),
         # query=sa.orm.Query((Group, Group.name)),
         columns=[

@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING, Optional, Union, Iterable, Dict, Callable, Tuple
+from math import ceil
 import sqlalchemy as sa
 from sqlalchemy.orm.attributes import QueryableAttribute
 from jembe import Component, config
@@ -66,11 +67,20 @@ class CTable(Component):
             ] = None,
             redisplay: Tuple["RedisplayFlag", ...] = (),
             changes_url: bool = True,
-            url_query_params: Optional[Dict[str, str]] = dict(o="order_by"),
+            url_query_params: Optional[Dict[str, str]] = None,
         ):
             self.db = db
             self.query = query
             self.columns = [c.mount(self.query) for c in columns]
+
+            if url_query_params is None:
+                url_query_params = dict()
+            if "order_by" not in url_query_params.values():
+                url_query_params["o"] = "order_by"
+            if "page" not in url_query_params.values():
+                url_query_params["p"] = "page"
+            if "page_size" not in url_query_params.values():
+                url_query_params["ps"] = "page_size"
 
             super().__init__(
                 template=template,
@@ -83,20 +93,32 @@ class CTable(Component):
 
     _config: Config
 
-    def __init__(self, order_by: int = 0):
+    def __init__(self, order_by: int = 0, page: int = 1, page_size: int = 10):
         super().__init__()
 
     # TODO
-    # order them
     # filter them
-    # paginate them
     # select them
     # execute action on them
     def display(self) -> Union[str, "Response"]:
         query = self._config.query.with_session(self._config.db.session())
+        # order
         if self.state.order_by != 0:
             ob = self._config.columns[abs(self.state.order_by) - 1].query_attribute
             ob = ob if self.state.order_by > 0 else ob.desc()
-            query = query.order_by(ob)
-        self.data = query[:10]
+            query = query.order_by(None).order_by(ob)
+        # paginate
+        self.total_records = query.count()
+        self.total_pages = ceil(self.total_records / self.state.page_size)
+        if self.state.page < 1:
+            self.state.page = 1
+        if self.state.page >= self.total_pages:
+            self.state.page = self.total_pages
+        self.start_record_index = (self.state.page - 1 )  * self.state.page_size
+        self.end_record_index = self.start_record_index  + self.state.page_size
+        if self.end_record_index > self.total_records:
+            self.end_record_index = self.total_pages
+
+        self.data = query[self.start_record_index:self.end_record_index]
+
         return super().display()

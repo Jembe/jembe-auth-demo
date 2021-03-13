@@ -8,6 +8,6 @@ class Notifications(Component):
     pass
 
 
-@config(Component.Config(template="common/system_error_notification.html"))
+@config(Component.Config(template="common/system_error_notification.html", changes_url=False))
 class SystemErrorNotification(Component):
     pass
