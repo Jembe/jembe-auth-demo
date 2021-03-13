@@ -7,7 +7,7 @@ from .confirmation import Confirmation
 from .notifications import Notifications, SystemErrorNotification
 
 if TYPE_CHECKING:
-    from jembe import Event, CConfigRedisplayFlag, ComponentConfig, ComponentRef
+    from jembe import Event, RedisplayFlag, ComponentConfig, ComponentRef
     from .menu import MenuItem
 
 __all__ = ("Page",)
@@ -25,7 +25,7 @@ class Page(Component):
             inject_into_components: Optional[
                 Callable[["Component", "ComponentConfig"], dict]
             ] = None,
-            redisplay: Tuple["CConfigRedisplayFlag", ...] = (),
+            redisplay: Tuple["RedisplayFlag", ...] = (),
             changes_url: bool = True,
             url_query_params: Optional[Dict[str, str]] = None,
         ):

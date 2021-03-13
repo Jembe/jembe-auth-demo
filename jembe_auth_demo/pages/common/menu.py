@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from jembe import (
         ComponentConfig,
         ComponentRef,
-        CConfigRedisplayFlag,
+        RedisplayFlag,
         ComponentRenderer,
     )
 
@@ -132,7 +132,7 @@ class Menu(Component):
             inject_into_components: Optional[
                 Callable[["Component", "ComponentConfig"], dict]
             ] = None,
-            redisplay: Tuple["CConfigRedisplayFlag", ...] = (),
+            redisplay: Tuple["RedisplayFlag", ...] = (),
             changes_url: bool = False,
             url_query_params: Optional[Dict[str, str]] = None,
         ):

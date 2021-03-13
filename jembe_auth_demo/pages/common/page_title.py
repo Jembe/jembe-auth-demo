@@ -2,7 +2,7 @@ from typing import Callable, Dict, Iterable, TYPE_CHECKING, Optional, Tuple, Uni
 from jembe import Component, config, listener
 
 if TYPE_CHECKING:
-    from jembe import CConfigRedisplayFlag, ComponentConfig, ComponentRef, Event
+    from jembe import RedisplayFlag, ComponentConfig, ComponentRef, Event
 
 __all__ = ("PageTitle",)
 
@@ -18,7 +18,7 @@ class PageTitle(Component):
             inject_into_components: Optional[
                 Callable[["Component", "ComponentConfig"], dict]
             ] = None,
-            redisplay: Tuple["CConfigRedisplayFlag", ...] = (),
+            redisplay: Tuple["RedisplayFlag", ...] = (),
             changes_url: bool = True,
             url_query_params: Optional[Dict[str, str]] = None,
         ):
