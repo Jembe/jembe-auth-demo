@@ -21,6 +21,8 @@ Handle no network or network error:
 ✘ Disable inputs when sending requests and display spinner (chose should spiner is display localy or globaly)?? @cancelled(21-03-15 15:49)
 ✔ Focus disabled button inside morphed compoenent afeter x-jembe request @done(21-03-15 21:08)
 ✔ Pagination not working as espected try with filter "aa" @done(21-03-15 21:13)
+☐ Add ActionLInk and Link and test it 
+☐ Refactor lambda self: self.compoent('view', record_id=1).print_pdf() and similar to work for ActionLink (jrl)
 ☐ Add group new action (create)
 ☐ Add group view, edit and delete action 
 ☐ Create user, user profile and group models

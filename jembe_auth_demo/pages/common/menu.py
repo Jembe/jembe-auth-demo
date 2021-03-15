@@ -10,7 +10,7 @@ if TYPE_CHECKING:
         ComponentConfig,
         ComponentRef,
         RedisplayFlag,
-        ComponentRenderer,
+        ComponentReference,
     )
 
 __all__ = ("Menu", "MenuItem")
@@ -96,13 +96,13 @@ class MenuItem:
         return mi
 
     @cached_property
-    def _component_renderer(self) -> "ComponentRenderer":
+    def _component_renderer(self) -> "ComponentReference":
         if self._component is None:
             return ValueError()
         if self._component.startswith("/"):
             # support simple exec name of component like /main/dash etc.
             c_names = self._component.split("/")[1:]
-            cr: "ComponentRenderer" = component("/{}".format(c_names[0]))
+            cr: "ComponentReference" = component("/{}".format(c_names[0]))
             for name in c_names[1:]:
                 cr = cr.component(name)
             return cr

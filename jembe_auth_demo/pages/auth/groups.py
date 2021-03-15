@@ -7,7 +7,6 @@ import sqlalchemy as sa
 
 __all__ = ("Groups",)
 
-
 @config(
     CTable.Config(
         db=db,  # TODO find ways to pickup default db automaticaly
