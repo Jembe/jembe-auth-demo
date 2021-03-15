@@ -19,8 +19,10 @@ Handle no network or network error:
 ✔ set delly on displaying progress indicator to stop screen flickering (on fast net) @done(21-03-15 16:48)
 ✔ Local blocks and progress indicators leave for jembe 2.0 @done(21-03-15 15:49)
 ✘ Disable inputs when sending requests and display spinner (chose should spiner is display localy or globaly)?? @cancelled(21-03-15 15:49)
-☐ Focus disabled button inside morphed compoenent afeter x-jembe request
-☐ Pagination not working as espected try with filter "aa"
+✔ Focus disabled button inside morphed compoenent afeter x-jembe request @done(21-03-15 21:08)
+✔ Pagination not working as espected try with filter "aa" @done(21-03-15 21:13)
+☐ Add group new action (create)
+☐ Add group view, edit and delete action 
 ☐ Create user, user profile and group models
 ☐ Create PageComponent with notifications menues and etc.
 ☐ Store session to db or memcached

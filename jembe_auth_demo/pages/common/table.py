@@ -138,7 +138,7 @@ class CTable(Component):
         self.start_record_index = (self.state.page - 1) * self.state.page_size
         self.end_record_index = self.start_record_index + self.state.page_size
         if self.end_record_index > self.total_records:
-            self.end_record_index = self.total_pages
+            self.end_record_index = self.total_records
 
 
         self.data = query[self.start_record_index : self.end_record_index]
