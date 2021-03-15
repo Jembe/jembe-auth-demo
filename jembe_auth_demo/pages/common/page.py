@@ -5,6 +5,7 @@ from .page_title import PageTitle
 from .menu import Menu
 from .confirmation import Confirmation
 from .notifications import Notifications, SystemErrorNotification
+from .progress_indicator import CProgressIndicator
 
 if TYPE_CHECKING:
     from jembe import Event, RedisplayFlag, ComponentConfig, ComponentRef
@@ -50,6 +51,8 @@ class Page(Component):
                 components["_notifications"] = Notifications
             if "_syserror" not in components:
                 components["_syserror"] = SystemErrorNotification
+            if "_progress_indicator" not in components:
+                components["_progress_indicator"] = CProgressIndicator
 
             super().__init__(
                 template=template,

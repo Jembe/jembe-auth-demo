@@ -13,7 +13,14 @@ Handle no network or network error:
     ✔ client raise event jembePageUpdateError @done(21-03-11 00:13)
     ✔ Default handler just print it at console @done(21-03-11 00:13)
     ✔ Page html adds on event handler and displays modal modal has jmb-ignore attribute to be ignored by merge @done(21-03-11 00:13)
-
+✔ Show spinner when processing x-jembe request (non blocking or blocking?) @done(21-03-15 15:48)
+✔ Block inputs and buttons on when progress indicator is displayed @done(21-03-15 18:01)
+✘ Use line progress indicator bellow main menu and shade whole app @cancelled(21-03-15 16:48)
+✔ set delly on displaying progress indicator to stop screen flickering (on fast net) @done(21-03-15 16:48)
+✔ Local blocks and progress indicators leave for jembe 2.0 @done(21-03-15 15:49)
+✘ Disable inputs when sending requests and display spinner (chose should spiner is display localy or globaly)?? @cancelled(21-03-15 15:49)
+☐ Focus disabled button inside morphed compoenent afeter x-jembe request
+☐ Pagination not working as espected try with filter "aa"
 ☐ Create user, user profile and group models
 ☐ Create PageComponent with notifications menues and etc.
 ☐ Store session to db or memcached
