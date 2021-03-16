@@ -2,7 +2,7 @@
     jmb-ignore 
     jmb-local="{requestsInProgress:0}"
     jmb-on:jembe-start-update-page.camel.delay.25ms.window="$local.requestsInProgress += 1;"
-    jmb-on:jembe-update-page.camel.window="if($event.detail.isXUpdate) {$local.requestsInProgress -= 1;}" 
+    jmb-on:jembe-update-page.camel.window="if($event.detail.isXUpdate) {$local.requestsInProgress -= 1;}"
     jmb-on:jembe-update-page-error.camel.window="$local.requestsInProgress = -1"> 
 
     <div jmb-cloak jmb-show="$local.requestsInProgress > 0" class="fixed inset-0 z-10 overflow-y-auto">

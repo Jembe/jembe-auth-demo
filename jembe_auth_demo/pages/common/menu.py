@@ -89,7 +89,7 @@ class MenuItem:
         mi = MenuItem(
             url=lambda self: self._component_renderer.url,
             jrl=lambda self: self._component_renderer.jrl,
-            is_accessible=lambda self: self._component_renderer.is_accessible(),
+            is_accessible=lambda self: self._component_renderer.is_accessible,
             title=title,
         )
         mi._component = component
