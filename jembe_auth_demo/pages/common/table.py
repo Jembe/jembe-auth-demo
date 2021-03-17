@@ -29,7 +29,7 @@ class TableColumn:
             if isinstance(self.query_attribute, QueryableAttribute):
                 # exm: Group.id
                 self.title = (
-                    self.query_attribute.name
+                    " ".join(self.query_attribute.name.split("_")).title()
                     if not self.query_attribute.info.get("verbose_name", None)
                     else self.query_attribute.info["verbose_name"]
                 )
@@ -62,6 +62,7 @@ class CTable(Component):
             query: sa.orm.Query,
             columns: Iterable["TableColumn"],
             default_filter: Optional[Callable[[str], "ColumnElement"]] = None,
+            title: Optional[str] = None,
             template: Optional[Union[str, Iterable[str]]] = None,
             components: Optional[Dict[str, "ComponentRef"]] = None,
             inject_into_components: Optional[
@@ -71,6 +72,7 @@ class CTable(Component):
             changes_url: bool = True,
             url_query_params: Optional[Dict[str, str]] = None,
         ):
+            self.title = title
             self.db = db
             self.query = query
             self.columns = [c.mount(self.query) for c in columns]
@@ -88,6 +90,10 @@ class CTable(Component):
 
             self.default_filter = default_filter
 
+            self.default_template = "common/table.html"
+            if template is None:
+                template = ("", self.default_template)
+
             super().__init__(
                 template=template,
                 components=components,
@@ -102,10 +108,12 @@ class CTable(Component):
     def __init__(
         self,
         order_by: int = 0,
-        page: int = 1,
+        page: int = 0,
         page_size: int = 10,
         search_query: Optional[str] = None,
     ):
+        if page_size <= 0:
+            self.state.page_size = 10
         super().__init__()
 
     # TODO
@@ -131,16 +139,14 @@ class CTable(Component):
         # paginate
         self.total_records = query.count()
         self.total_pages = ceil(self.total_records / self.state.page_size)
-        if self.state.page < 1:
-            self.state.page = 1
-        if self.state.page >= self.total_pages:
-            self.state.page = self.total_pages
-        self.start_record_index = (self.state.page - 1) * self.state.page_size
+        if self.state.page > self.total_pages - 1:
+            self.state.page = self.total_pages - 1
+        if self.state.page < 0:
+            self.state.page = 0
+        self.start_record_index = self.state.page * self.state.page_size
         self.end_record_index = self.start_record_index + self.state.page_size
         if self.end_record_index > self.total_records:
             self.end_record_index = self.total_records
-
-
-        self.data = query[self.start_record_index : self.end_record_index]
+        self.data = query[self.start_record_index: self.end_record_index]
 
         return super().display()

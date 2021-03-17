@@ -5,11 +5,12 @@ from jembe_auth_demo.pages.common import CTable, TableColumn as TC
 import sqlalchemy as sa
 
 
-__all__ = ("Groups",)
+__all__ = ("CGroups",)
 
 @config(
     CTable.Config(
         db=db,  # TODO find ways to pickup default db automaticaly
+        title="Groups",
         query=sa.orm.Query(Group).order_by(Group.id),
         columns=[
             TC(Group.name), # TODO add action
@@ -32,5 +33,5 @@ __all__ = ("Groups",)
         # bulk_actions =[]
     )
 )
-class Groups(CTable):
+class CGroups(CTable):
     pass

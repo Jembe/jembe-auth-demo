@@ -1,7 +1,7 @@
 from jembe_auth_demo.jmb import jmb
 from .common import Page, ActionLink
 from .dashboard import Dashboard
-from .auth import Groups, Users
+from .auth import CGroups, CUsers
 
 
 @jmb.page(
@@ -15,8 +15,8 @@ from .auth import Groups, Users
         ],
         components={
             "dash": Dashboard,
-            "users": Users,
-            "groups": Groups,
+            "users": CUsers,
+            "groups": CGroups,
         },
     ),
 )
