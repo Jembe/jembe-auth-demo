@@ -1,5 +1,5 @@
   <nav class="bg-white shadow-sm" 
-       jmb-local="{componentsOnPage: [], activeGroups:[], mobileMenuOpen:false}" 
+       jmb-local="{componentsOnPage: [], activeMenues:[], mobileMenuOpen:false}" 
        jmb-on:jembe-update-page.camel.window="$local.componentsOnPage = $jmb.componentsOnPage(); $local.activeGroups = [];">
     <div id="test" class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
       <div class="flex justify-between h-16">
@@ -12,28 +12,33 @@
           {# 
             add recursivly to for loop to support is_group and if it's group check if $local.activeGroups.includes('{{mi.id}}') 
           #}
-            {% for mi in _config.items  %}
+            {% for mi in _config.menu.items  %}
+            {% if not is_menu(mi) %}
             {% if mi.is_accessible %}
             <a {% if mi.url is not none %} href="{{mi.url}}" {% endif %} 
                {% if mi.jrl is not none %} jmb-on:click.stop.prevent="{{mi.jrl}}" {% endif %} 
               class="inline-flex items-center px-1 pt-1 text-sm font-medium border-b-2"
-              {% if mi.is_component %}
+              {% if mi.is_action_link %}
                   jmb-bind:class="{
                     'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': 
                         !$local.componentsOnPage.includes('{{mi.exec_name}}'),
                     'border-indigo-500 text-gray-900':  
-                        $local.componentsOnPage.includes('{{mi.exec_name}}') && $local.activeGroups.push.apply(JSON.parse('{{mi.parents_ids|tojson}}')) !== undefined
+                        $local.componentsOnPage.includes('{{mi.exec_name}}') && $local.activeMenues.push.apply(JSON.parse('{{mi.jmb_parent_menues_ids|tojson}}')) !== undefined
                   }"
               {% else %}
                   jmb-bind:class="{
                     'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': 
                         window.location.pathname !== '{{mi.pathname}}',
                     'border-indigo-500 text-gray-900':  
-                      window.location.pathname === '{{mi.pathname}}'
+                      window.location.pathname === '{{mi.pathname}}'&& $local.activeMenues.push.apply(JSON.parse('{{mi.jmb_parent_menues_ids|tojson}}')) !== undefined
+
                   }"
               {% endif %}>
               {{mi.title}}
             </a>
+            {% endif %}
+            
+            {% else %}
             {% endif %}
             {% endfor %}
           </div>

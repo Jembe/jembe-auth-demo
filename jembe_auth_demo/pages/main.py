@@ -1,5 +1,5 @@
 from jembe_auth_demo.jmb import jmb
-from .common import Page, MenuItem
+from .common import Page, ActionLink
 from .dashboard import Dashboard
 from .auth import Groups, Users
 
@@ -8,12 +8,10 @@ from .auth import Groups, Users
     "main",
     Page.Config(
         page_title="JAD",
-        main_menu_items=[
-            MenuItem.for_component("/main/dash", "Dashboard"),
-            MenuItem.for_component("/main/users", "Users"),
-            MenuItem.for_component("/main/groups", "Groups"),
-            # ActionLink("/main/dash", "Dashboard")
-            
+        main_menu=[
+            ActionLink("/main/dash", "Dashboard"),
+            ActionLink("/main/users", "Users"),
+            ActionLink("/main/groups", "Groups"),
         ],
         components={
             "dash": Dashboard,

@@ -1,15 +1,16 @@
-from typing import Callable, Dict, Iterable, TYPE_CHECKING, Optional, Tuple, Union
+from typing import Callable, Dict, Iterable, TYPE_CHECKING, Optional, Tuple, Union, List
 from functools import cached_property
 from jembe import Component, listener, config
 from .page_title import PageTitle
-from .menu import Menu
+from .menu import CMenu
 from .confirmation import Confirmation
 from .notifications import Notifications, SystemErrorNotification
 from .progress_indicator import CProgressIndicator
 
 if TYPE_CHECKING:
     from jembe import Event, RedisplayFlag, ComponentConfig, ComponentRef
-    from .menu import MenuItem
+    from .link import Link
+    from .menu import Menu
 
 __all__ = ("Page",)
 
@@ -20,7 +21,7 @@ class Page(Component):
         def __init__(
             self,
             page_title: str = "",
-            main_menu_items: Optional[Iterable["MenuItem"]] = None,
+            main_menu: Optional[Union[List[Union["Link", "Menu"]], "Menu"]] = None,
             template: Optional[Union[str, Iterable[str]]] = None,
             components: Optional[Dict[str, "ComponentRef"]] = None,
             inject_into_components: Optional[
@@ -40,10 +41,8 @@ class Page(Component):
                 components["_title"] = (PageTitle, PageTitle.Config(title=page_title))
             if "_main_menu" not in components:
                 components["_main_menu"] = (
-                    Menu,
-                    Menu.Config(
-                        items=main_menu_items, template="common/main_menu.html"
-                    ),
+                    CMenu,
+                    CMenu.Config(menu=main_menu, template="common/main_menu.html"),
                 )
             if "_confirmation" not in components:
                 components["_confirmation"] = Confirmation
