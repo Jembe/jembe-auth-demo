@@ -3,7 +3,7 @@ const colors = require('tailwindcss/colors')
 
 module.exports = {
   purge: [
-    './jembe_auth_demo/scr/**/*.html' 
+    './jembe_auth_demo/**/*.html' 
   ],
   theme: {
     extend: {
