@@ -16,7 +16,6 @@ __all__ = ("CUsers",)
         TC(User.last_name),
         TC(User.email),
     ]
-
 ))
 class CUsers(CTable):
     pass
