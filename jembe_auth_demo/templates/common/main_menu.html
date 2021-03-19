@@ -12,7 +12,7 @@
           {# 
             add recursivly to for loop to support is_group and if it's group check if $local.activeGroups.includes('{{mi.id}}') 
           #}
-            {% for mi in _config.menu.items  %}
+            {% for mi in menu.items  %}
             {% if not is_menu(mi) %}
             {% if mi.is_accessible %}
             <a {% if mi.url is not none %} href="{{mi.url}}" {% endif %} 
@@ -23,14 +23,14 @@
                     'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': 
                         !$local.componentsOnPage.includes('{{mi.exec_name}}'),
                     'border-indigo-500 text-gray-900':  
-                        $local.componentsOnPage.includes('{{mi.exec_name}}') && $local.activeMenues.push.apply(JSON.parse('{{mi.jmb_parent_menues_ids|tojson}}')) !== undefined
+                        $local.componentsOnPage.includes('{{mi.exec_name}}')
                   }"
               {% else %}
                   jmb-bind:class="{
                     'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': 
                         window.location.pathname !== '{{mi.pathname}}',
                     'border-indigo-500 text-gray-900':  
-                      window.location.pathname === '{{mi.pathname}}'&& $local.activeMenues.push.apply(JSON.parse('{{mi.jmb_parent_menues_ids|tojson}}')) !== undefined
+                      window.location.pathname === '{{mi.pathname}}'
 
                   }"
               {% endif %}>

@@ -3,8 +3,9 @@
     <h1 class="text-3xl font-bold leading-tight text-gray-900">
       {{_config.title|default('', true)}}
     </h1>
+    <div class="flex">
+    {% if _config.default_filter is not none %}
     <div class="w-full max-w-lg shadow-sm lg:max-w-xs">
-      {% if _config.default_filter is not none %}
       <label for="search" class="sr-only">Search</label>
       <div class="relative text-gray-400 focus-within:text-gray-600">
         <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -17,7 +18,22 @@
           value="{{search_query|default('', true)}}"
           jmb-on:input.debounce="search_query = $self.value">
       </div>
+    </div>
+    {% endif %}
+    {% if top_menu.items %}
+    <div class="relative z-0 inline-flex ml-6 rounded-md shadow-sm">
+      {% for mi in top_menu.items %}
+      {% if mi.is_accessible %}
+      <button 
+          {% if mi.url is not none %} href="{{mi.url}}" {% endif %} 
+          {% if mi.jrl is not none %} jmb-on:click.stop.prevent="{{mi.jrl}}" {% endif %} 
+          class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 {% if loop.first %} rounded-l-md {%endif%} {% if not loop.first %} -ml-px  {% endif  %} {%if loop.last %}  rounded-r-md  {% endif %}">
+        {{mi.title}}
+      </button>
       {% endif %}
+      {% endfor %}
+    </div>
+    {% endif %}
     </div>
   </div>
 </header>

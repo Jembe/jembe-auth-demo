@@ -34,19 +34,23 @@ class Menu:
     description: Optional[str] = None
     params: Dict[str, Any] = field(default_factory=dict)
     id: str = field(default="", init=False)
-    jmb_parent_menues_ids: List[str] = field(init=False, default_factory=list)
+
+    binded: bool = field(default=False, init=False)
 
     def __post__init__(self):
         self.id = str(uuid4())
 
-    def mount(self):
-        """associtate parent_menu_ids to all menu items"""
-        for item in self.items:
-            if isinstance(item, Menu):
-                item.jmb_parent_menues_ids.extend(self.jmb_parent_menues_ids)
-                item.mount()
-            else:
-                item.jmb_parent_menues_ids = self.jmb_parent_menues_ids
+    def bind_to(self, component: "Component") -> "Menu":
+        """bind menu to acctual component"""
+        binded_menu = Menu(
+            title=self.title,
+            description=self.description,
+            params=self.params,
+        )
+        binded_menu.id = self.id
+        binded_menu.items = [item.bind_to(component) for item in self.items]
+        binded_menu.binded = True
+        return binded_menu
 
 
 class CMenu(Component):
@@ -73,7 +77,6 @@ class CMenu(Component):
                 if menu is None
                 else (Menu(menu) if not isinstance(menu, Menu) else menu)
             )
-            self.menu.mount()
 
             super().__init__(
                 template=template,
@@ -85,5 +88,6 @@ class CMenu(Component):
             )
 
     def display(self) -> Union[str, "Response"]:
+        self.menu = self._config.menu.bind_to(self)
         self.is_menu = lambda menu_item: isinstance(menu_item, Menu)
         return super().display()

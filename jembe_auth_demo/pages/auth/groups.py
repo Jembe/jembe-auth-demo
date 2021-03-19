@@ -1,11 +1,21 @@
-from jembe import config
+from jembe_auth_demo.pages.common.link import ActionLink
+from typing import TYPE_CHECKING, Optional
+from jembe import config, listener
 from jembe_auth_demo.models import Group
 from jembe_auth_demo.db import db
-from jembe_auth_demo.pages.common import CTable, TableColumn as TC
+from jembe_auth_demo.pages.common import CTable, TableColumn as TC, CCreate, ActionLink
 import sqlalchemy as sa
+
+if TYPE_CHECKING:
+    from jembe import Event
 
 
 __all__ = ("CGroups",)
+
+
+class CCreateGroup(CCreate):
+    pass
+
 
 @config(
     CTable.Config(
@@ -13,25 +23,45 @@ __all__ = ("CGroups",)
         title="Groups",
         query=sa.orm.Query(Group).order_by(Group.id),
         columns=[
-            TC(Group.name), # TODO add action
+            TC(Group.name),  # TODO add action
             TC(Group.title),
             TC(Group.description),
         ],
-        default_filter=lambda value: Group.title.ilike("%{}%".format(value))
-        # filters=[
-        #   ChoiceFilter(Group.name.... whatever, "Title")
-        #   ChoiceFilterGroup(lambda value:Group.name.... whatever, values, titles)
-        #   FieldFilter(Group.name, optial operators ...)
-        # ]
+        default_filter=lambda value: Group.title.ilike("%{}%".format(value)),
+        top_menu=[
+            ActionLink("create", "Add"),
+        ],
         # actions = [
         #   CAction(lambda self: self.component('create'), "Create", icon) # Action and MenuItem are the same thing
         # ]
-        # record_actions = [
-        #   CAction(lambda self, record: self.component('edit',id=record.id), "Edit", icon) 
-        #   CAction(lambda self, record: self.component('view',id=record.id) if not self.component('edit', id=record.id).is_accessile() else None, "View", icon) 
+        # record_menu = [
+        #   CAction(lambda self, record: self.component('edit',id=record.id), "Edit", icon)
+        #   CAction(lambda self, record: self.component('view',id=record.id) if not self.component('edit', id=record.id).is_accessile() else None, "View", icon)
         # ]
-        # bulk_actions =[]
+        # field_links = {}
+        # bulk_menu =[]
+        components=dict(create=CCreateGroup),
     )
 )
 class CGroups(CTable):
-    pass
+    def __init__(
+        self,
+        order_by: int = 0,
+        page: int = 0,
+        page_size: int = 10,
+        search_query: Optional[str] = None,
+        display_mode: Optional[str] = None,
+    ):
+        if (
+            display_mode is not None
+            and display_mode not in self._config.components.keys()
+        ):
+            self.state.display_mode = None
+
+        super().__init__(
+            order_by=order_by, page=page, page_size=page_size, search_query=search_query
+        )
+
+    @listener(event="_display", source="./create")
+    def on_child_display(self, event: "Event"):
+        self.state.display_mode = event.source_name

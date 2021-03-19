@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING, Optional, Union, Callable
+from copy import copy
 from uuid import uuid4
 from functools import cached_property, partial
 from urllib.parse import urlparse
@@ -27,6 +28,15 @@ class Link:
         self.params = params
 
         self.is_action_link = False
+
+        self.from_component: Optional["Component"] = None
+        self.binded = False
+
+    def bind_to(self, component: "Component") -> "Link":
+        binded_link = copy(self)
+        binded_link.from_component = component
+        binded_link.binded = True
+        return binded_link
 
     @property
     def url(self) -> Optional[str]:
@@ -73,7 +83,6 @@ class Link:
         else:
             return self._description(self)
 
-    
 
 class ActionLink(Link):
     def __init__(
@@ -86,32 +95,29 @@ class ActionLink(Link):
         **params
     ):
         super().__init__(
-            url=self._get_url_,
-            jrl=self._get_jrl_,
-            is_accessible=self._is_accessible_,
+            url=self._get_url_,  # type:ignore
+            jrl=self._get_jrl_,  # type:ignore
+            is_accessible=self._is_accessible_,  # type:ignore
             title=title,
             description=description,
             **params
         )
-        self._from_component: Optional["Component"] = None
-        self._to_component: Callable[[Optional["Component"]], "ComponentReference"] = (
-            self._str_to_component_reference_lambda(to_component)
-            if isinstance(to_component, str)
-            else to_component
-        )
+        self._to_component = to_component
+        # self._to_component: Callable[[Optional["Component"]], "ComponentReference"] = (
+        #     self._str_to_component_reference_lambda(to_component)
+        #     if isinstance(to_component, str)
+        #     else to_component
+        # )
         self.is_action_link = True
 
-    def _get_url_(self, link: "Link", *args, **kwargs) -> str:
-        return self.to_component_reference.url
+    def _get_url_(self, link: "ActionLink", *args, **kwargs) -> str:
+        return link.to_component_reference.url
 
-    def _get_jrl_(self, link: "Link", *args, **kwargs) -> str:
-        return self.to_component_reference.jrl
+    def _get_jrl_(self, link: "ActionLink", *args, **kwargs) -> str:
+        return link.to_component_reference.jrl
 
-    def _is_accessible_(self, link: "Link", *args, **kwargs) -> bool:
-        return self.to_component_reference.is_accessible
-
-    def set_from_component(self, component: "Component"):
-        self._component = component
+    def _is_accessible_(self, link: "ActionLink", *args, **kwargs) -> bool:
+        return link.to_component_reference.is_accessible
 
     def _str_to_component_reference_lambda(
         self,
@@ -120,12 +126,18 @@ class ActionLink(Link):
         def absolute_component_reference(cstr: str, *args, **kwargs):
             # support simple exec name of component like /main/dash etc.
             c_names = cstr.split("/")[1:]
-            cr: "ComponentReference" = component("/{}".format(c_names[0]))
-            for name in c_names[1:]:
-                cr = cr.component(name)
+            do_reset_params = len(c_names) == 1
+            cr: "ComponentReference" = component(
+                "/{}".format(c_names[0]), do_reset_params
+            )
+            for index, name in enumerate(c_names[1:]):
+                if index == len(c_names) - 1:
+                    cr = cr.component_reset(name)
+                else:
+                    cr = cr.component(name)
             return cr
 
-        def relative_component_reference(cstr: str, comp, *args, **kwargs):
+        def relative_component_reference(cstr: str, comp: "Component", *args, **kwargs):
             c_names = cstr.split("/")
             cr: "ComponentReference" = comp.component(c_names[0])
             for name in c_names[1:]:
@@ -135,13 +147,18 @@ class ActionLink(Link):
         if cstr.startswith("/"):
             return partial(absolute_component_reference, cstr)
         else:
-            return partial(relative_component_reference, cstr, self._from_component)
+            return partial(relative_component_reference, cstr, self.from_component)
 
     @cached_property
     def to_component_reference(self) -> "ComponentReference":
-        if self._from_component:
-            return self._to_component(self._from_component)
-        return self._to_component()  # type: ignore
+        to_component: Callable[[Optional["Component"]], "ComponentReference"] = (
+            self._str_to_component_reference_lambda(self._to_component)
+            if isinstance(self._to_component, str)
+            else self._to_component
+        )
+        if self.from_component:
+            return to_component(self.from_component)
+        return to_component()  # type: ignore
 
     @property
     def exec_name(self) -> str:

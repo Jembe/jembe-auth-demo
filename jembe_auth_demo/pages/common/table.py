@@ -1,8 +1,9 @@
-from typing import TYPE_CHECKING, Optional, Union, Iterable, Dict, Callable, Tuple
+from typing import TYPE_CHECKING, Optional, Union, Iterable, Dict, Callable, Tuple, List
 from math import ceil
 import sqlalchemy as sa
 from sqlalchemy.orm.attributes import QueryableAttribute
 from jembe import Component
+from jembe_auth_demo.pages.common import Link, Menu
 
 if TYPE_CHECKING:
     from flask import Response
@@ -63,6 +64,7 @@ class CTable(Component):
             columns: Iterable["TableColumn"],
             default_filter: Optional[Callable[[str], "ColumnElement"]] = None,
             title: Optional[str] = None,
+            top_menu: Optional[Union[List[Union["Link", "Menu"]], "Menu"]] = None,
             template: Optional[Union[str, Iterable[str]]] = None,
             components: Optional[Dict[str, "ComponentRef"]] = None,
             inject_into_components: Optional[
@@ -93,6 +95,12 @@ class CTable(Component):
             self.default_template = "common/table.html"
             if template is None:
                 template = ("", self.default_template)
+
+            self.top_menu: "Menu" = (
+                Menu()
+                if top_menu is None
+                else (Menu(top_menu) if not isinstance(top_menu, Menu) else top_menu)
+            )
 
             super().__init__(
                 template=template,
@@ -147,6 +155,9 @@ class CTable(Component):
         self.end_record_index = self.start_record_index + self.state.page_size
         if self.end_record_index > self.total_records:
             self.end_record_index = self.total_records
-        self.data = query[self.start_record_index: self.end_record_index]
+        self.data = query[self.start_record_index : self.end_record_index]
+
+        # initialise menues
+        self.top_menu = self._config.top_menu.bind_to(self)
 
         return super().display()
