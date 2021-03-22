@@ -5,6 +5,8 @@ from jembe_auth_demo.models import Group
 from jembe_auth_demo.db import db
 from jembe_auth_demo.pages.common import CTable, TableColumn as TC, CCreate, ActionLink
 import sqlalchemy as sa
+from wtforms_sqlalchemy.orm import model_form
+from jembe_auth_demo.common import JembeForm
 
 if TYPE_CHECKING:
     from jembe import Event
@@ -12,7 +14,15 @@ if TYPE_CHECKING:
 
 __all__ = ("CGroups",)
 
+GroupForm = model_form(
+    Group,
+    db,
+    base_class=JembeForm,
+    exclude=["users"]
+)
 
+
+@config(CCreate.Config(db=db, form=GroupForm, model=Group))
 class CCreateGroup(CCreate):
     pass
 
@@ -31,9 +41,6 @@ class CCreateGroup(CCreate):
         top_menu=[
             ActionLink("create", "Add"),
         ],
-        # actions = [
-        #   CAction(lambda self: self.component('create'), "Create", icon) # Action and MenuItem are the same thing
-        # ]
         # record_menu = [
         #   CAction(lambda self, record: self.component('edit',id=record.id), "Edit", icon)
         #   CAction(lambda self, record: self.component('view',id=record.id) if not self.component('edit', id=record.id).is_accessile() else None, "View", icon)
