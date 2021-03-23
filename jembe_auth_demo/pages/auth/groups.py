@@ -72,3 +72,7 @@ class CGroups(CTable):
     @listener(event="_display", source="./create")
     def on_child_display(self, event: "Event"):
         self.state.display_mode = event.source_name
+
+    @listener(event="cancel", source="./create")
+    def on_child_cancel(self, event: "Event"):
+        self.state.display_mode = None

@@ -3,7 +3,7 @@ from functools import cached_property
 from jembe import Component, listener, config
 from .page_title import PageTitle
 from .menu import CMenu
-from .confirmation import Confirmation
+from .confirmation import CConfirmationDialog
 from .notifications import Notifications, SystemErrorNotification
 from .progress_indicator import CProgressIndicator
 
@@ -45,7 +45,7 @@ class Page(Component):
                     CMenu.Config(menu=main_menu, template="common/main_menu.html"),
                 )
             if "_confirmation" not in components:
-                components["_confirmation"] = Confirmation
+                components["_confirmation"] = CConfirmationDialog
             if "_notifications" not in components:
                 components["_notifications"] = Notifications
             if "_syserror" not in components:

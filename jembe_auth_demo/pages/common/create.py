@@ -1,5 +1,6 @@
-from typing import TYPE_CHECKING, Callable, Dict, Iterable, Optional, Tuple, Union
+from typing import Any, TYPE_CHECKING, Callable, Dict, Iterable, Optional, Tuple, Union
 from jembe_auth_demo.common import JembeForm
+from .confirmation import OnConfirmationMixin, Confirmation
 from jembe import Component, action, run_only_once
 import sqlalchemy as sa
 
@@ -11,7 +12,7 @@ if TYPE_CHECKING:
 __all__ = ("CCreate",)
 
 
-class CCreate(Component):
+class CCreate(OnConfirmationMixin, Component):
     class Config(Component.Config):
         def __init__(
             self,
@@ -46,10 +47,15 @@ class CCreate(Component):
 
     _config: Config
 
-    def __init__(
-        self, form: Optional[JembeForm] = None
-    ) -> None:
+    def __init__(self, form: Optional[JembeForm] = None) -> None:
         super().__init__()
+
+    @classmethod
+    def load_init_param(cls, config: "ComponentConfig", name: str, value: Any) -> Any:
+        if name == "form":
+            # otherwise it will use JembeForm.load_init_param
+            return config.form.load_init_param(value)
+        return super().load_init_param(name, value)
 
     def get_new_record(self) -> "Model":
         return self._config.model()
@@ -87,21 +93,19 @@ class CCreate(Component):
 
     @action
     def cancel(self, confirmed=False):
-        # if self._is_record_modified() and not confirmed:
-        #     self.emit(
-        #         "requestConfirmation",
-        #         confirmation=Confirmation(
-        #             title="Cancel Add",
-        #             question="Are you sure, all changes will be lost?",
-        #             action="cancel",
-        #             params=dict(confirmed=True),
-        #         ),
-        #     )
-        # else:
-        #     self.emit("cancel")
-        #     return False
-        self.emit("cancel")
-        return False
+        if self._is_record_modified() and not confirmed:
+            self.emit(
+                "requestConfirmation",
+                confirmation=Confirmation(
+                    title="Cancel Add",
+                    question="Are you sure, all changes will be lost?",
+                    action="cancel",
+                    params=dict(confirmed=True),
+                ),
+            )
+        else:
+            self.emit("cancel")
+            return False
 
     def display(self) -> Union[str, "Response"]:
         self.mount()
@@ -119,4 +123,3 @@ class CCreate(Component):
             if getattr(new_record, column_name) != getattr(empty_record, column_name):
                 return True
         return False
-
