@@ -103,11 +103,6 @@ class ActionLink(Link):
             **params
         )
         self._to_component = to_component
-        # self._to_component: Callable[[Optional["Component"]], "ComponentReference"] = (
-        #     self._str_to_component_reference_lambda(to_component)
-        #     if isinstance(to_component, str)
-        #     else to_component
-        # )
         self.is_action_link = True
 
     def _get_url_(self, link: "ActionLink", *args, **kwargs) -> str:
@@ -131,7 +126,7 @@ class ActionLink(Link):
                 "/{}".format(c_names[0]), do_reset_params
             )
             for index, name in enumerate(c_names[1:]):
-                if index == len(c_names) - 1:
+                if index == len(c_names) - 2:
                     cr = cr.component_reset(name)
                 else:
                     cr = cr.component(name)
