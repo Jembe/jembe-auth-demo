@@ -89,7 +89,7 @@ def _deadlock_error(operational_error, match, engine_name, is_disconnect):
     deadlock or timeout <deadlock details>
 
     """
-    raise exception.DBDeadlock(operational_error) from operational_error
+    raise exception.DBDeadlock() from operational_error
 
 
 @filters(
@@ -241,7 +241,7 @@ def _foreign_key_error(integrity_error, match, engine_name, is_disconnect):
     except IndexError:
         key_table = None
 
-    raise exception.DBReferenceError(table, constraint, key, key_table, integrity_error) from integrity_error
+    raise exception.DBReferenceError(table, constraint, key, key_table ) from integrity_error
 
 
 @filters(
@@ -263,7 +263,7 @@ def _check_constraint_error(integrity_error, match, engine_name, is_disconnect):
     except IndexError:
         check_name = None
 
-    raise exception.DBConstraintError(table, check_name, integrity_error) from integrity_error
+    raise exception.DBConstraintError(table, check_name) from integrity_error
 
 
 @filters(
@@ -305,7 +305,7 @@ def _check_constraint_non_existing(
     except IndexError:
         constraint = None
 
-    raise exception.DBNonExistentConstraint(relation, constraint, programming_error) from programming_error
+    raise exception.DBNonExistentConstraint(relation, constraint) from programming_error
 
 
 @filters("sqlite", sqla_exc.OperationalError, r".* no such table: (?P<table>.+)")
@@ -324,7 +324,7 @@ def _check_constraint_non_existing(
 )
 def _check_table_non_existing(programming_error, match, engine_name, is_disconnect):
     """Filter for table non existing errors."""
-    raise exception.DBNonExistentTable(match.group("table"), programming_error) from programming_error
+    raise exception.DBNonExistentTable(match.group("table")) from programming_error
 
 
 @filters(
@@ -347,7 +347,7 @@ def _check_database_non_existing(error, match, engine_name, is_disconnect):
     except IndexError:
         database = None
 
-    raise exception.DBNonExistentDatabase(database, error) from error
+    raise exception.DBNonExistentDatabase(database) from error
 
 
 @filters("ibm_db_sa", sqla_exc.IntegrityError, r"^.*SQL0803N.*$")
@@ -390,7 +390,7 @@ def _raise_mysql_table_doesnt_exist_asis(error, match, engine_name, is_disconnec
 def _raise_data_error(error, match, engine_name, is_disconnect):
     """Raise DBDataError exception for different data errors."""
 
-    raise exception.DBDataError(error)
+    raise exception.DBDataError() from error
 
 
 @filters(
@@ -401,7 +401,7 @@ def _raise_data_error(error, match, engine_name, is_disconnect):
 def _raise_savepoints_as_dberrors(error, match, engine_name, is_disconnect):
     # NOTE(rpodolyaka): this is a special case of an OperationalError that used
     # to be an InternalError. It's expected to be wrapped into oslo.db error.
-    raise exception.DBError(error)
+    raise exception.DBError() from error
 
 
 @filters("*", sqla_exc.OperationalError, r".*")
@@ -416,7 +416,7 @@ def _raise_operational_errors_directly_filter(
     if is_disconnect:
         # operational errors that represent disconnect
         # should be wrapped
-        raise exception.DBConnectionError(operational_error) from operational_error
+        raise exception.DBConnectionError() from operational_error
     else:
         # NOTE(comstud): A lot of code is checking for OperationalError
         # so let's not wrap it for now.
@@ -434,12 +434,12 @@ def _raise_operational_errors_directly_filter(
 @filters("ibm_db_sa", sqla_exc.OperationalError, r".*(?:30081)")
 def _is_db_connection_error(operational_error, match, engine_name, is_disconnect):
     """Detect the exception as indicating a recoverable error on connect."""
-    raise exception.DBConnectionError(operational_error) from operational_error
+    raise exception.DBConnectionError() from operational_error
 
 
 @filters("*", sqla_exc.NotSupportedError, r".*")
 def _raise_for_NotSupportedError(error, match, engine_name, is_disconnect):
-    raise exception.DBNotSupportedError(error) from error
+    raise exception.DBNotSupportedError() from error
 
 
 @filters("*", sqla_exc.DBAPIError, r".*")
@@ -450,10 +450,10 @@ def _raise_for_remaining_DBAPIError(error, match, engine_name, is_disconnect):
     a disconnect error.
     """
     if is_disconnect:
-        raise exception.DBConnectionError(error) from error
+        raise exception.DBConnectionError() from error
     else:
         LOG.warning("DBAPIError exception wrapped.", exc_info=True)
-        raise exception.DBError(error) from error
+        raise exception.DBError() from error
 
 
 @filters("*", UnicodeEncodeError, r".*")
@@ -464,7 +464,7 @@ def _raise_for_unicode_encode(error, match, engine_name, is_disconnect):
 @filters("*", Exception, r".*")
 def _raise_for_all_others(error, match, engine_name, is_disconnect):
     LOG.warning("DB exception wrapped.", exc_info=True)
-    raise exception.DBError(error) from error
+    raise exception.DBError() from error
 
 
 ROLLBACK_CAUSE_KEY = "oslo.db.sp_rollback_cause"

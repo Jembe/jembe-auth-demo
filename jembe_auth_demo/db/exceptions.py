@@ -78,10 +78,10 @@ class DBConstraintError(DBError):
     :type check_name: str
     """
 
-    def __init__(self, table, check_name, inner_exception=None):
+    def __init__(self, table, check_name):
         self.table = table
         self.check_name = check_name
-        super(DBConstraintError, self).__init__(inner_exception)
+        super(DBConstraintError, self).__init__()
 
 
 class DBReferenceError(DBError):
@@ -97,12 +97,12 @@ class DBReferenceError(DBError):
     :type key_table: str
     """
 
-    def __init__(self, table, constraint, key, key_table, inner_exception=None):
+    def __init__(self, table, constraint, key, key_table):
         self.table = table
         self.constraint = constraint
         self.key = key
         self.key_table = key_table
-        super(DBReferenceError, self).__init__(inner_exception)
+        super(DBReferenceError, self).__init__()
 
 
 class DBNonExistentConstraint(DBError):
@@ -114,10 +114,10 @@ class DBNonExistentConstraint(DBError):
     :type table: str
     """
 
-    def __init__(self, table, constraint, inner_exception=None):
+    def __init__(self, table, constraint):
         self.table = table
         self.constraint = constraint
-        super(DBNonExistentConstraint, self).__init__(inner_exception)
+        super(DBNonExistentConstraint, self).__init__()
 
 
 class DBNonExistentTable(DBError):
@@ -127,9 +127,9 @@ class DBNonExistentTable(DBError):
     :type table: str
     """
 
-    def __init__(self, table, inner_exception=None):
+    def __init__(self, table):
         self.table = table
-        super(DBNonExistentTable, self).__init__(inner_exception)
+        super(DBNonExistentTable, self).__init__()
 
 
 class DBNonExistentDatabase(DBError):
@@ -139,9 +139,9 @@ class DBNonExistentDatabase(DBError):
     :type database: str
     """
 
-    def __init__(self, database, inner_exception=None):
+    def __init__(self, database):
         self.database = database
-        super(DBNonExistentDatabase, self).__init__(inner_exception)
+        super(DBNonExistentDatabase, self).__init__()
 
 
 class DBDeadlock(DBError):
@@ -153,8 +153,8 @@ class DBDeadlock(DBError):
     on the data that another, different, session has already locked.
     """
 
-    def __init__(self, inner_exception=None):
-        super(DBDeadlock, self).__init__(inner_exception)
+    def __init__(self):
+        super(DBDeadlock, self).__init__()
 
 
 class DBInvalidUnicodeParameter(Exception):
