@@ -50,7 +50,8 @@ class TableColumn:
             )
 
     def render_value(self, record) -> str:
-        return self.get_value(record)
+        value = self.get_value(record)  
+        return value if value is not None else ""
 
 
 # TODO aplly this params event if config exists
