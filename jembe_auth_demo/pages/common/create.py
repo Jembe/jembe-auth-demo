@@ -1,5 +1,8 @@
 from typing import Any, TYPE_CHECKING, Callable, Dict, Iterable, Optional, Tuple, Union
+
+from sqlalchemy.exc import SQLAlchemyError
 from jembe_auth_demo.common import JembeForm
+from jembe_auth_demo.db.exceptions import DBError
 from .confirmation import OnConfirmationMixin, Confirmation
 from .notifications import Notification
 from jembe import Component, action, run_only_once
@@ -82,11 +85,14 @@ class CCreate(OnConfirmationMixin, Component):
                 )
                 # don't execute display
                 return False
-            except sa.exc.SQLAlchemyError as sql_error:
+
+            except (sa.exc.SQLAlchemyError, DBError) as error:
+                self._config.db.session.rollback()
                 self.emit(
                     "pushNotification",
                     notification=Notification(
-                        str(getattr(sql_error, "orig", sql_error)), "error"
+                        str(getattr(error, "orig", error)) if isinstance(error, sa.exc.SQLAlchemyError) else str(error)
+                        , "error"
                     ),
                 )
                 return True

@@ -5,8 +5,7 @@ from jembe_auth_demo.models import Group
 from jembe_auth_demo.db import db
 from jembe_auth_demo.pages.common import CTable, TableColumn as TC, CCreate, ActionLink
 import sqlalchemy as sa
-from wtforms_sqlalchemy.orm import model_form
-from jembe_auth_demo.common import JembeForm
+from jembe_auth_demo.common import model_form
 
 if TYPE_CHECKING:
     from jembe import Event
@@ -17,8 +16,6 @@ __all__ = ("CGroups",)
 GroupForm = model_form(
     Group,
     db,
-    base_class=JembeForm,
-    exclude=["users"]
 )
 
 

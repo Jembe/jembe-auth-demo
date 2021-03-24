@@ -12,6 +12,7 @@ Flask-Migrate = "^2.7.0"
 python-dotenv = "^0.15.0"
 WTForms = "^2.3.3"
 WTForms-SQLAlchemy = "^0.2"
+Flask-Babel = "^2.0.0"
 
 [tool.poetry.dev-dependencies]
 jembe = {path = "../jembe", develop=true}
