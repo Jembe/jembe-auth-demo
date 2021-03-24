@@ -1,6 +1,7 @@
 from typing import Any, TYPE_CHECKING, Callable, Dict, Iterable, Optional, Tuple, Union
 from jembe_auth_demo.common import JembeForm
 from .confirmation import OnConfirmationMixin, Confirmation
+from .notifications import Notification
 from jembe import Component, action, run_only_once
 import sqlalchemy as sa
 
@@ -75,21 +76,21 @@ class CCreate(OnConfirmationMixin, Component):
                 self._config.db.session.add(record)
                 self._config.db.session.commit()
                 self.emit("save", record=record, record_id=record.id)
-                # self.emit(
-                #     "pushNotification",
-                #     notification=Notification("{} saved".format(str(record))),
-                # )
+                self.emit(
+                    "pushNotification",
+                    notification=Notification("{} saved".format(str(record))),
+                )
                 # don't execute display
                 return False
             except sa.exc.SQLAlchemyError as sql_error:
-                # self.emit(
-                #     "pushNotification",
-                #     notification=Notification(
-                #         str(getattr(sql_error, "orig", sql_error)), "error"
-                #     ),
-                # )
+                self.emit(
+                    "pushNotification",
+                    notification=Notification(
+                        str(getattr(sql_error, "orig", sql_error)), "error"
+                    ),
+                )
                 return True
-        return None
+        return True
 
     @action
     def cancel(self, confirmed=False):

@@ -4,7 +4,7 @@ from jembe import Component, listener, config
 from .page_title import PageTitle
 from .menu import CMenu
 from .confirmation import CConfirmationDialog
-from .notifications import Notifications, SystemErrorNotification
+from .notifications import CNotifications, CSystemErrorNotification
 from .progress_indicator import CProgressIndicator
 
 if TYPE_CHECKING:
@@ -47,9 +47,9 @@ class Page(Component):
             if "_confirmation" not in components:
                 components["_confirmation"] = CConfirmationDialog
             if "_notifications" not in components:
-                components["_notifications"] = Notifications
+                components["_notifications"] = CNotifications
             if "_syserror" not in components:
-                components["_syserror"] = SystemErrorNotification
+                components["_syserror"] = CSystemErrorNotification
             if "_progress_indicator" not in components:
                 components["_progress_indicator"] = CProgressIndicator
 

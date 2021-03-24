@@ -17,5 +17,4 @@ class JembeForm(JembeInitParamSupport, Form, metaclass=JembeFormMeta):
 
     @classmethod
     def load_init_param(cls, value: Any) -> Any:
-        print(cls, cls(data=value).data)
         return cls(data=value)
