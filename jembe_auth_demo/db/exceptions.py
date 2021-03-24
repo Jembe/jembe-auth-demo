@@ -59,12 +59,11 @@ class DBDuplicateEntry(DBError):
         super().__init__()
 
     def __str__(self):
-        if self.value is None:
-            return "Record with same '{}' already exist".format(" ".join(self.columns))
-        return 'Duplicate value "{v}" for columns {c}'.format(
-            v=self.value, c=self.columns
-        )
+        if self.columns is None:
+            return "Record with same data already exist"
+        return "Record with same '{}' already exist".format(" ".join(self.columns))
 
+# TODO add error messages to all errors and 
 
 class DBConstraintError(DBError):
     """Check constraint fails for column error.
