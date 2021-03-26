@@ -1,6 +1,5 @@
 from typing import Any, TYPE_CHECKING, Callable, Dict, Iterable, Optional, Tuple, Union
 
-from sqlalchemy.exc import SQLAlchemyError
 from jembe_auth_demo.common import JembeForm
 from jembe_auth_demo.db.exceptions import DBError
 from .confirmation import OnConfirmationMixin, Confirmation
@@ -23,6 +22,7 @@ class CCreate(OnConfirmationMixin, Component):
             db: "SQLAlchemy",
             model: "Model",
             form: "JembeForm",
+            title: Optional[str] = None,
             template: Optional[Union[str, Iterable[str]]] = None,
             components: Optional[Dict[str, "ComponentRef"]] = None,
             inject_into_components: Optional[
@@ -35,6 +35,7 @@ class CCreate(OnConfirmationMixin, Component):
             self.db = db
             self.model = model
             self.form = form
+            self.title = title if title else "Create"
 
             self.default_template = "common/create.html"
             if template is None:
@@ -91,8 +92,10 @@ class CCreate(OnConfirmationMixin, Component):
                 self.emit(
                     "pushNotification",
                     notification=Notification(
-                        str(getattr(error, "orig", error)) if isinstance(error, sa.exc.SQLAlchemyError) else str(error)
-                        , "error"
+                        str(getattr(error, "orig", error))
+                        if isinstance(error, sa.exc.SQLAlchemyError)
+                        else str(error),
+                        "error",
                     ),
                 )
                 return True

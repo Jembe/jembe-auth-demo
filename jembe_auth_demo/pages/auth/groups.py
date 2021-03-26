@@ -13,13 +13,10 @@ if TYPE_CHECKING:
 
 __all__ = ("CGroups",)
 
-GroupForm = model_form(
-    Group,
-    db,
-)
+GroupForm = model_form(Group, db)
 
 
-@config(CCreate.Config(db=db, form=GroupForm, model=Group))
+@config(CCreate.Config(db=db, form=GroupForm, model=Group, title="Add Group"))
 class CCreateGroup(CCreate):
     pass
 

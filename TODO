@@ -24,10 +24,12 @@ Handle no network or network error:
 ✔ Add ActionLInk and Link and test it @done(21-03-17 12:26)
 ✘ Refactor lambda self: self.compoent('view', record_id=1).print_pdf() and similar to work for ActionLink (jrl) @cancelled(21-03-17 12:32)
 ✔ Add user list @done(21-03-17 13:18)
-☐ Add group new action (create)
+✔ Add group new action (create) @done(21-03-24 13:18)
+☐ Add user create action
 ☐ Add group view, edit and delete action 
 ☐ Create user, user profile and group models
-☐ Create PageComponent with notifications menues and etc.
+☐ Create action flow 
+✔ Create PageComponent with notifications menues and etc. @done(21-03-25 02:19)
 ☐ Store session to db or memcached
 ☐ Build group management components
 ☐ Build user management components
