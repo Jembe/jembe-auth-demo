@@ -25,6 +25,11 @@ Handle no network or network error:
 ✘ Refactor lambda self: self.compoent('view', record_id=1).print_pdf() and similar to work for ActionLink (jrl) @cancelled(21-03-17 12:32)
 ✔ Add user list @done(21-03-17 13:18)
 ✔ Add group new action (create) @done(21-03-24 13:18)
+Make wtforms better for me:
+    ☐ Remove usage of wtforms-sqlalchemy
+    ☐ Create SaField(Field) which will automaticly set validators, field type, widget etc from actual db field name = SaField(Group.name)
+    ☐ Dont use model_form insteand create every form manualy and explicitly. I don't want to putt editable false on Model.
+    ☐ Use wff-sqlalchemy convertor code as reference when inplementing
 ☐ Add user create action
 ☐ Add group view, edit and delete action 
 ☐ Create user, user profile and group models

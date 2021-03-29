@@ -5,7 +5,7 @@ from jembe_auth_demo.models import Group
 from jembe_auth_demo.db import db
 from jembe_auth_demo.pages.common import CTable, TableColumn as TC, CCreate, ActionLink
 import sqlalchemy as sa
-from jembe_auth_demo.common import model_form
+from jembe_auth_demo.common import JembeForm, sa_field
 
 if TYPE_CHECKING:
     from jembe import Event
@@ -13,7 +13,12 @@ if TYPE_CHECKING:
 
 __all__ = ("CGroups",)
 
-GroupForm = model_form(Group, db)
+
+class GroupForm(JembeForm):
+    name = sa_field(Group.name)
+    title = sa_field(Group.title)
+    description = sa_field(Group.description)
+    # users = sa_field("users", model=Group, db=db)
 
 
 @config(CCreate.Config(db=db, form=GroupForm, model=Group, title="Add Group"))

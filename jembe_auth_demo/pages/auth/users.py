@@ -1,17 +1,24 @@
+from jembe_auth_demo.common.forms import JembeForm, sa_field
 from jembe_auth_demo.pages.common.link import ActionLink
 from typing import Optional, TYPE_CHECKING
 from jembe import config, listener
 from jembe_auth_demo.db import db
 from jembe_auth_demo.pages.common import CTable, TableColumn as TC, CCreate
 from jembe_auth_demo.models import User
-from jembe_auth_demo.common import model_form
 import sqlalchemy as sa
 
 if TYPE_CHECKING:
     from jembe import Event
 __all__ = ("CUsers",)
 
-UserForm = model_form(User, db, exclude=["groups", "email_confirmed_at"])
+
+class UserForm(JembeForm):
+    first_name = sa_field(User.first_name)
+    last_name = sa_field(User.last_name)
+    email = sa_field(User.email)
+    password = sa_field(User.password)
+
+    active = sa_field(User.active)
 
 
 @config(
