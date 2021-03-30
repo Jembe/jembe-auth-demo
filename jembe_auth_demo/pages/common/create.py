@@ -52,7 +52,9 @@ class CCreate(OnConfirmationMixin, Component):
 
     _config: Config
 
-    def __init__(self, form: Optional[JembeForm] = None) -> None:
+    def __init__(
+        self, form: Optional[JembeForm] = None, is_modified: bool = False
+    ) -> None:
         super().__init__()
 
     @classmethod
@@ -60,7 +62,7 @@ class CCreate(OnConfirmationMixin, Component):
         if name == "form":
             # otherwise it will use JembeForm.load_init_param
             return config.form.load_init_param(value)
-        return super().load_init_param(name, value)
+        return super().load_init_param(config, name, value)
 
     def get_new_record(self) -> "Model":
         return self._config.model()
@@ -69,6 +71,9 @@ class CCreate(OnConfirmationMixin, Component):
     def mount(self):
         if self.state.form is None:
             self.state.form = self._config.form(obj=self.get_new_record())
+
+        if isinstance(self.state.form, JembeForm):
+            self.state.form.mount(self)
 
     @action
     def save(self) -> Optional[bool]:
@@ -88,7 +93,6 @@ class CCreate(OnConfirmationMixin, Component):
                 return False
 
             except (sa.exc.SQLAlchemyError, DBError) as error:
-                self._config.db.session.rollback()
                 self.emit(
                     "pushNotification",
                     notification=Notification(
@@ -98,12 +102,12 @@ class CCreate(OnConfirmationMixin, Component):
                         "error",
                     ),
                 )
-                return True
+        self._config.db.session.rollback()
         return True
 
     @action
     def cancel(self, confirmed=False):
-        if self._is_record_modified() and not confirmed:
+        if self.state.is_modified and not confirmed:
             self.emit(
                 "requestConfirmation",
                 confirmation=Confirmation(
@@ -123,13 +127,3 @@ class CCreate(OnConfirmationMixin, Component):
             "info", dict()
         )
         return super().display()
-
-    def _is_record_modified(self) -> bool:
-        self.mount()
-        new_record = self.get_new_record()
-        self.state.form.populate_obj(new_record)
-        empty_record = self.get_new_record()
-        for column_name in new_record.__table__.columns.keys():
-            if getattr(new_record, column_name) != getattr(empty_record, column_name):
-                return True
-        return False

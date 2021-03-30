@@ -1,24 +1,59 @@
-from jembe_auth_demo.common.forms import JembeForm, sa_field
+from jembe_auth_demo.common.forms import JembeForm
 from jembe_auth_demo.pages.common.link import ActionLink
 from typing import Optional, TYPE_CHECKING
 from jembe import config, listener
 from jembe_auth_demo.db import db
 from jembe_auth_demo.pages.common import CTable, TableColumn as TC, CCreate
-from jembe_auth_demo.models import User
+from jembe_auth_demo.models import User, Group
+from wtforms import (
+    StringField,
+    PasswordField,
+    BooleanField,
+    SelectMultipleField,
+    validators,
+)
+from wtforms.fields.html5 import EmailField
 import sqlalchemy as sa
 
 if TYPE_CHECKING:
-    from jembe import Event
+    from jembe import Event, Component
 __all__ = ("CUsers",)
 
 
 class UserForm(JembeForm):
-    first_name = sa_field(User.first_name)
-    last_name = sa_field(User.last_name)
-    email = sa_field(User.email)
-    password = sa_field(User.password)
+    first_name = StringField(
+        validators=[
+            validators.DataRequired(),
+            validators.Length(max=User.first_name.type.length),
+        ]
+    )
+    last_name = StringField(
+        validators=[
+            validators.DataRequired(),
+            validators.Length(max=User.last_name.type.length),
+        ]
+    )
+    email = EmailField(
+        validators=[
+            validators.DataRequired(),
+            validators.Email(),
+            validators.Length(max=User.email.type.length),
+        ]
+    )
+    password = PasswordField(
+        validators=[
+            validators.DataRequired(),
+            validators.Length(max=User.password.type.length),
+        ]
+    )
+    active = BooleanField(default=True)
+    groups_ids = SelectMultipleField(coerce=int)
 
-    active = sa_field(User.active)
+    def mount(self, component: "Component"):
+        self.groups_ids.choices = [
+            (g.id, g.title) for g in db.session.query(Group)[:100]
+        ]
+        return super().mount(component)
 
 
 @config(

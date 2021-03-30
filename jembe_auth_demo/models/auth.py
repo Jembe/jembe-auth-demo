@@ -1,3 +1,4 @@
+from sqlalchemy.ext.associationproxy import association_proxy
 from jembe_auth_demo.db import db
 import sqlalchemy as sa
 
@@ -38,6 +39,10 @@ class User(db.Model):
         lazy="subquery",
         backref=sa.orm.backref("users", lazy=True),
     )
+    # hmmm...
+    groups_ids = association_proxy(
+        "groups", "id", creator=lambda id: db.session.query(Group).get(id)
+    )
 
     def __str__(self) -> str:
         return "{} {}".format(self.first_name, self.last_name)
@@ -51,6 +56,11 @@ class Group(db.Model):
     name = sa.Column(sa.String(50), nullable=False, unique=True)
     title = sa.Column(sa.String(255), nullable=False, unique=True)
     description = sa.Column(sa.Text)
+
+    # hmmm....
+    users_ids = association_proxy(
+        "users", "id", creator=lambda id: db.session.query(User).get(id)
+    )
 
     def __str__(self) -> str:
         return self.title

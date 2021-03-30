@@ -1,3 +1,5 @@
+from sqlalchemy.orm import session
+from jembe_auth_demo.models.auth import User
 from jembe_auth_demo.pages.common.link import ActionLink
 from typing import TYPE_CHECKING, Optional
 from jembe import config, listener
@@ -5,20 +7,38 @@ from jembe_auth_demo.models import Group
 from jembe_auth_demo.db import db
 from jembe_auth_demo.pages.common import CTable, TableColumn as TC, CCreate, ActionLink
 import sqlalchemy as sa
-from jembe_auth_demo.common import JembeForm, sa_field
+from wtforms import StringField, TextAreaField, validators, SelectMultipleField
+from jembe_auth_demo.common import JembeForm
 
 if TYPE_CHECKING:
-    from jembe import Event
+    from jembe import Event, Component
 
 
 __all__ = ("CGroups",)
 
 
 class GroupForm(JembeForm):
-    name = sa_field(Group.name)
-    title = sa_field(Group.title)
-    description = sa_field(Group.description)
-    # users = sa_field("users", model=Group, db=db)
+    name = StringField(
+        validators=[
+            validators.DataRequired(),
+            validators.Length(max=Group.title.type.length),
+        ]
+    )
+    title = StringField(
+        validators=[
+            validators.DataRequired(),
+            validators.Length(max=Group.title.type.length),
+        ]
+    )
+    description = TextAreaField()
+    users_ids = SelectMultipleField("Users", coerce=int)
+
+    def mount(self, component: "Component"):
+        self.users_ids.choices = [
+            (u.id, "{} {}".format(u.first_name, u.last_name))
+            for u in db.session.query(User)
+        ]
+        super().mount(component)
 
 
 @config(CCreate.Config(db=db, form=GroupForm, model=Group, title="Add Group"))
