@@ -1,17 +1,23 @@
 from sqlalchemy.orm import session
 from jembe_auth_demo.models.auth import User
 from jembe_auth_demo.pages.common.link import ActionLink
-from typing import TYPE_CHECKING, Optional
-from jembe import config, listener
+from typing import TYPE_CHECKING
+from jembe import config
 from jembe_auth_demo.models import Group
 from jembe_auth_demo.db import db
-from jembe_auth_demo.pages.common import CCrudTable, TableColumn as TC, CCreate, ActionLink
+from jembe_auth_demo.pages.common import (
+    CCrudTable,
+    TableColumn as TC,
+    CCreate,
+    ActionLink,
+    CRead,
+)
 import sqlalchemy as sa
 from wtforms import StringField, TextAreaField, validators, SelectMultipleField
 from jembe_auth_demo.common import JembeForm
 
 if TYPE_CHECKING:
-    from jembe import Event, Component
+    from jembe import Component
 
 
 __all__ = ("CGroups",)
@@ -47,8 +53,20 @@ class CCreateGroup(CCreate):
 
 
 @config(
+    CRead.Config(
+        db=db,
+        form=GroupForm,
+        model=Group,
+        title=lambda component: "Group: {}".format(component.record.title),
+    )
+)
+class CReadGroup(CRead):
+    pass
+
+
+@config(
     CCrudTable.Config(
-        db=db,  # TODO find ways to pickup default db automaticaly
+        db=db,
         title="Groups",
         query=sa.orm.Query(Group).order_by(Group.id),
         columns=[
@@ -66,7 +84,7 @@ class CCreateGroup(CCreate):
         # ]
         # field_links = {}
         # bulk_menu =[]
-        components=dict(create=CCreateGroup),
+        components=dict(create=CCreateGroup, read=CReadGroup),
     )
 )
 class CGroups(CCrudTable):

@@ -15,6 +15,21 @@ class JembeFormMeta(FormMeta, ABCMeta):
 
 
 class JembeForm(JembeInitParamSupport, Form, metaclass=JembeFormMeta):
+    def __init__(
+        self,
+        formdata=None,
+        obj=None,
+        prefix="",
+        data=None,
+        meta=None,
+        readonly=False,
+        **kwargs
+    ):
+        self.is_readonly = readonly
+        super().__init__(
+            formdata=formdata, obj=obj, prefix=prefix, data=data, meta=meta, **kwargs
+        )
+
     @classmethod
     def dump_init_param(cls, value: Any) -> Any:
         return value.data if value is not None else dict()
