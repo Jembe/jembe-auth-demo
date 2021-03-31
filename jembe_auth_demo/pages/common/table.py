@@ -2,16 +2,18 @@ from typing import TYPE_CHECKING, Optional, Union, Iterable, Dict, Callable, Tup
 from math import ceil
 import sqlalchemy as sa
 from sqlalchemy.orm.attributes import QueryableAttribute
-from jembe import Component
+from jembe import Component, listener
 from jembe_auth_demo.pages.common import Link, Menu
+from .create import CCreate
 
 if TYPE_CHECKING:
+    from jembe import Event
     from flask import Response
     from flask_sqlalchemy import SQLAlchemy
     from sqlalchemy.sql.elements import ColumnElement
     from jembe import ComponentConfig, ComponentRef, RedisplayFlag
 
-__all__ = ("CTable", "TableColumn")
+__all__ = ("CTable", "CCrudTable", "TableColumn")
 
 
 class TableColumn:
@@ -50,7 +52,7 @@ class TableColumn:
             )
 
     def render_value(self, record) -> str:
-        value = self.get_value(record)  
+        value = self.get_value(record)
         return value if value is not None else ""
 
 
@@ -162,3 +164,77 @@ class CTable(Component):
         self.top_menu = self._config.top_menu.bind_to(self)
 
         return super().display()
+
+
+class CCrudTable(CTable):
+    """
+    Table that support create, read, update, delete subcomponents
+    displayed instead of table
+    """
+    class Config(CTable.Config):
+        def __init__(
+            self,
+            db: "SQLAlchemy",
+            query: sa.orm.Query,
+            columns: Iterable["TableColumn"],
+            default_filter: Optional[Callable[[str], "ColumnElement"]] = None,
+            title: Optional[str] = None,
+            top_menu: Optional[Union[List[Union["Link", "Menu"]], "Menu"]] = None,
+            template: Optional[Union[str, Iterable[str]]] = None,
+            components: Optional[Dict[str, "ComponentRef"]] = None,
+            inject_into_components: Optional[
+                Callable[["Component", "ComponentConfig"], dict]
+            ] = None,
+            redisplay: Tuple["RedisplayFlag", ...] = (),
+            changes_url: bool = True,
+            url_query_params: Optional[Dict[str, str]] = None,
+        ):
+            super().__init__(
+                db,
+                query,
+                columns,
+                default_filter=default_filter,
+                title=title,
+                top_menu=top_menu,
+                template=template,
+                components=components,
+                inject_into_components=inject_into_components,
+                redisplay=redisplay,
+                changes_url=changes_url,
+                url_query_params=url_query_params,
+            )
+            self.supported_display_modes = [
+                cname
+                for cname, cclass in self.components_classes.items()
+                if issubclass(cclass, (CCreate,))
+            ]
+
+    _config: Config
+
+    def __init__(
+        self,
+        order_by: int = 0,
+        page: int = 0,
+        page_size: int = 10,
+        search_query: Optional[str] = None,
+        display_mode: Optional[str] = None,
+    ):
+        if display_mode is not None and (
+            display_mode not in self._config.supported_display_modes
+            or display_mode.startswith("_")
+        ):
+            self.state.display_mode = None
+
+        super().__init__(
+            order_by=order_by, page=page, page_size=page_size, search_query=search_query
+        )
+
+    @listener(event="_display", source="./*")
+    def on_child_display(self, event: "Event"):
+        if event.source_name in self._config.supported_display_modes:
+            self.state.display_mode = event.source_name
+
+    @listener(event=["save", "cancel"], source="./*")
+    def on_child_finish(self, event: "Event"):
+        if event.source_name in self._config.supported_display_modes:
+            self.state.display_mode = None
