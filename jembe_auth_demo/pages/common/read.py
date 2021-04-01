@@ -53,11 +53,29 @@ class CRead(Component):
 
     _config: Config
 
-    def __init__(self, record_id: int) -> None:
+    def __init__(self, id: int, _record: Optional["Model"] = None) -> None:
+        self._record = (
+            _record if _record is not None and _record.id == id else None
+        )
         super().__init__()
+
+    @property
+    def record(self):
+        if self._record is None:
+            self._record = self._config.db.session.query(self._config.model).get(
+                self.state.id
+            )
+        return self._record
 
     @property
     def title(self) -> str:
         if isinstance(self._config.title, str):
             return self._config.title
         return self._config.title(self)
+
+    def display(self) -> Union[str, "Response"]:
+        self.form = self._config.form(obj=self.record).mount(self)
+        self.model_info = getattr(self._config.model, "__table_args__", dict()).get(
+            "info", dict()
+        )
+        return super().display()

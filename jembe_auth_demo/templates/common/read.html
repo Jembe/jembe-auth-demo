@@ -1,0 +1,56 @@
+  <div class="flex justify-between px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+    <h1 class="text-3xl font-bold leading-tight text-gray-900">
+        {{title}}
+    </h1>
+    <div class="flex">
+    <div class="relative z-0 inline-flex ml-6 rounded-md shadow-sm">
+    </div>
+    </div>
+  </div>
+</header>
+<main>
+  <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
+    <div class="flex flex-col py-8">
+      <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+        <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+          <div class="px-6 overflow-hidden bg-white border-b border-gray-200 shadow sm:rounded-lg">
+          <div class="space-y-8 divide-y divide-gray-200">
+          <div class="py-8">
+          <div class="grid grid-cols-1 mt-6 gap-y-6 gap-x-4 sm:grid-cols-6">
+    {% for field in form  %}
+        <div class="sm:col-span-3">
+        <label for="{{field.name}}" class="block text-sm font-medium text-gray-700">{{field.label}}</label>
+        {% if not field.errors %}
+        
+        <div class="mt-1">
+          {{field(**{"id":false, "class":"shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"})}}
+        </div>
+        {% else %}
+        <div class="relative mt-1 rounded-md shadow-sm">
+          {{field(**{"id":false, "class":"block w-full pr-10 text-red-900 placeholder-red-300 border-red-300 rounded-md focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"})}}
+          <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+            <!-- Heroicon name: solid/exclamation-circle -->
+            <svg class="w-5 h-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+            </svg>
+          </div>
+        </div>
+        <p class="mt-2 text-sm text-red-600" id="{{field.name}}-error">
+        {% for error in field.errors %}
+          {{error}} 
+        {% endfor %}
+        </p>
+        {% endif %}
+        </div>
+    {% endfor %}
+          </div>
+          </div>
+          </div>
+          </div>
+        </div>
+      </div>
+
+
+    </div>
+  </div>
+</main>

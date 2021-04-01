@@ -32,6 +32,8 @@ Make wtforms better for me:
     ✘ Dont use model_form insteand create every form manualy and explicitly. I don't want to putt editable false on Model. @cancelled(21-03-30 12:32)
 ✔ Add user create action @done(21-03-30 12:33)
 ✔ Use raw wtforms @done(21-03-30 12:33)
+☐ Read form should not be editable
+☐ Add bread crumbg to return to groups
 ☐ Add group view, edit and delete action 
 ☐ Create user, user profile and group models
 ☐ Create action flow 

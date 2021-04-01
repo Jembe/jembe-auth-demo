@@ -5,6 +5,7 @@ from sqlalchemy.orm.attributes import QueryableAttribute
 from jembe import Component, listener
 from jembe_auth_demo.pages.common import Link, Menu
 from .create import CCreate
+from .read import CRead
 
 if TYPE_CHECKING:
     from jembe import Event
@@ -68,6 +69,7 @@ class CTable(Component):
             default_filter: Optional[Callable[[str], "ColumnElement"]] = None,
             title: Optional[str] = None,
             top_menu: Optional[Union[List[Union["Link", "Menu"]], "Menu"]] = None,
+            record_menu: Optional[Union[List[Union["Link", "Menu"]], "Menu"]] = None,
             template: Optional[Union[str, Iterable[str]]] = None,
             components: Optional[Dict[str, "ComponentRef"]] = None,
             inject_into_components: Optional[
@@ -103,6 +105,15 @@ class CTable(Component):
                 Menu()
                 if top_menu is None
                 else (Menu(top_menu) if not isinstance(top_menu, Menu) else top_menu)
+            )
+            self.record_menu: "Menu" = (
+                Menu()
+                if record_menu is None
+                else (
+                    Menu(record_menu)
+                    if not isinstance(record_menu, Menu)
+                    else record_menu
+                )
             )
 
             super().__init__(
@@ -162,6 +173,7 @@ class CTable(Component):
 
         # initialise menues
         self.top_menu = self._config.top_menu.bind_to(self)
+        self.record_menu = self._config.record_menu.bind_to(self)
 
         return super().display()
 
@@ -171,6 +183,7 @@ class CCrudTable(CTable):
     Table that support create, read, update, delete subcomponents
     displayed instead of table
     """
+
     class Config(CTable.Config):
         def __init__(
             self,
@@ -180,6 +193,7 @@ class CCrudTable(CTable):
             default_filter: Optional[Callable[[str], "ColumnElement"]] = None,
             title: Optional[str] = None,
             top_menu: Optional[Union[List[Union["Link", "Menu"]], "Menu"]] = None,
+            record_menu: Optional[Union[List[Union["Link", "Menu"]], "Menu"]] = None,
             template: Optional[Union[str, Iterable[str]]] = None,
             components: Optional[Dict[str, "ComponentRef"]] = None,
             inject_into_components: Optional[
@@ -189,6 +203,10 @@ class CCrudTable(CTable):
             changes_url: bool = True,
             url_query_params: Optional[Dict[str, str]] = None,
         ):
+            self.table_template = "common/table.html"
+            self.default_template = "common/crud_table.html"
+            if template is None:
+                template = ("", self.default_template)
             super().__init__(
                 db,
                 query,
@@ -196,6 +214,7 @@ class CCrudTable(CTable):
                 default_filter=default_filter,
                 title=title,
                 top_menu=top_menu,
+                record_menu=record_menu,
                 template=template,
                 components=components,
                 inject_into_components=inject_into_components,
@@ -206,7 +225,7 @@ class CCrudTable(CTable):
             self.supported_display_modes = [
                 cname
                 for cname, cclass in self.components_classes.items()
-                if issubclass(cclass, (CCreate,))
+                if issubclass(cclass, (CCreate, CRead))
             ]
 
     _config: Config

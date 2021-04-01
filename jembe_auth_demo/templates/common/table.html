@@ -63,6 +63,13 @@
                     </button>
                   </th>
                 {% endfor %}
+                {% if record_menu.items %}
+                  <th scope="col">
+                    <div class="w-full px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                      Actions
+                    </div>
+                  </th>
+                {% endif %}
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
               {% for record in data %}
@@ -76,6 +83,20 @@
                     {{tc.render_value(record)}}
                   </td>
                 {% endfor %}
+                {% if record_menu.items %}
+                  <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
+                    {% for mi in record_menu.items %}
+                    {% if mi.set(record=record).is_accessible %}
+                    <a 
+                        {% if mi.url is not none %} href="{{mi.url}}" {% endif %} 
+                        {% if mi.jrl is not none %} jmb-on:click.stop.prevent="{{mi.jrl}}" {% endif %} 
+                        class="text-indigo-600 hover:text-indigo-900 hover:underline">
+                      {{mi.title}}
+                    </a>
+                    {% endif %}
+                    {% endfor %}
+                  </th>
+                {% endif %}
                 </tr>
               {% endfor %}
               </tbody>

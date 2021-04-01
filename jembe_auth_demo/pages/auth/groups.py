@@ -39,12 +39,12 @@ class GroupForm(JembeForm):
     description = TextAreaField()
     users_ids = SelectMultipleField("Users", coerce=int)
 
-    def mount(self, component: "Component"):
+    def mount(self, component: "Component") -> "JembeForm":
         self.users_ids.choices = [
             (u.id, "{} {}".format(u.first_name, u.last_name))
             for u in db.session.query(User)
         ]
-        super().mount(component)
+        return super().mount(component)
 
 
 @config(CCreate.Config(db=db, form=GroupForm, model=Group, title="Add Group"))
@@ -77,6 +77,9 @@ class CReadGroup(CRead):
         default_filter=lambda value: Group.title.ilike("%{}%".format(value)),
         top_menu=[
             ActionLink("create", "Add"),
+        ],
+        record_menu=[
+            ActionLink(lambda self, record: self.component("read", id=record.id, _record=record), "View")  # type: ignore
         ],
         # record_menu = [
         #   CAction(lambda self, record: self.component('edit',id=record.id), "Edit", icon)

@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional, Union, Callable
+from typing import TYPE_CHECKING, Optional, Union, Callable, Dict, Any
 from copy import copy
 from uuid import uuid4
 from functools import cached_property, partial
@@ -26,6 +26,7 @@ class Link:
         self._title = title if title is not None else str(uuid4())
         self._description = description
         self.params = params
+        self.callable_params: Dict[str, Any] = dict()
 
         self.is_action_link = False
 
@@ -45,7 +46,7 @@ class Link:
         elif isinstance(self._url, str):
             return self._url
         else:
-            return self._url(self)
+            return self._url(self, **self.callable_params) # type:ignore
 
     @property
     def pathname(self) -> Optional[str]:
@@ -58,21 +59,21 @@ class Link:
         elif isinstance(self._jrl, str):
             return self._jrl
         else:
-            return self._jrl(self)
+            return self._jrl(self, **self.callable_params)  # type:ignore
 
     @property
     def is_accessible(self) -> bool:
         if isinstance(self._is_accessible, bool):
             return self._is_accessible
         else:
-            return self._is_accessible(self)
+            return self._is_accessible(self, **self.callable_params)  # type:ignore
 
     @property
     def title(self) -> str:
         if isinstance(self._title, str):
             return self._title
         else:
-            return self._title(self)
+            return self._title(self, **self.callable_params)  # type:ignore
 
     @property
     def description(self) -> Optional[str]:
@@ -81,7 +82,14 @@ class Link:
         elif isinstance(self._description, str):
             return self._description
         else:
-            return self._description(self)
+            return self._description(self, **self.callable_params)  # type:ignore
+
+    def set(self, **kwargs) -> "Link":
+        """Add additional paramas for callables and resets previous ones"""
+        self.callable_params = dict()
+        for k, v in kwargs.items():
+            self.callable_params[k] = v
+        return self
 
 
 class ActionLink(Link):
@@ -115,8 +123,7 @@ class ActionLink(Link):
         return link.to_component_reference.is_accessible
 
     def _str_to_component_reference_lambda(
-        self,
-        cstr: str,
+        self, cstr: str
     ) -> Callable[[Optional["Component"]], "ComponentReference"]:
         def absolute_component_reference(cstr: str, *args, **kwargs):
             # support simple exec name of component like /main/dash etc.
@@ -152,7 +159,7 @@ class ActionLink(Link):
             else self._to_component
         )
         if self.from_component:
-            return to_component(self.from_component)
+            return to_component(self.from_component, **self.callable_params)  # type: ignore
         return to_component()  # type: ignore
 
     @property

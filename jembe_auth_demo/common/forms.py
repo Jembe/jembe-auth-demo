@@ -38,5 +38,5 @@ class JembeForm(JembeInitParamSupport, Form, metaclass=JembeFormMeta):
     def load_init_param(cls, value: Any) -> Any:
         return cls(data=value)
 
-    def mount(self, component: "Component"):
-        pass
+    def mount(self, component: "Component")-> "JembeForm":
+        return self
