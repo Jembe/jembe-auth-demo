@@ -5,6 +5,7 @@ from wtforms.form import Form, FormMeta
 
 if TYPE_CHECKING:
     from jembe import Component
+    from wtforms import Field
 
 
 __all__ = ("JembeForm",)
@@ -38,5 +39,18 @@ class JembeForm(JembeInitParamSupport, Form, metaclass=JembeFormMeta):
     def load_init_param(cls, value: Any) -> Any:
         return cls(data=value)
 
-    def mount(self, component: "Component")-> "JembeForm":
+    def mount(self, component: "Component") -> "JembeForm":
         return self
+
+    def setdefault(self, field: "Field", param_name: str, value: Any) -> Any:
+        if field.render_kw is None:
+            field.render_kw = dict()
+        return field.render_kw.setdefault(param_name, value)
+
+    def set_readonly(self, *fields: "Field"):
+        for field in fields:
+            self.setdefault(field, "disabled", True)
+            self.setdefault(field, "readonly", True)
+
+    def set_readonly_all(self):
+        self.set_readonly(*[field for field in self])

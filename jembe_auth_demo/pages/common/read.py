@@ -74,7 +74,7 @@ class CRead(Component):
         return self._config.title(self)
 
     def display(self) -> Union[str, "Response"]:
-        self.form = self._config.form(obj=self.record).mount(self)
+        self.form = self._config.form(obj=self.record, readonly=True).mount(self)
         self.model_info = getattr(self._config.model, "__table_args__", dict()).get(
             "info", dict()
         )

@@ -1,9 +1,14 @@
 from jembe_auth_demo.common.forms import JembeForm
-from jembe_auth_demo.pages.common.link import ActionLink
 from typing import TYPE_CHECKING
 from jembe import config
 from jembe_auth_demo.db import db
-from jembe_auth_demo.pages.common import CCrudTable, TableColumn as TC, CCreate
+from jembe_auth_demo.pages.common import (
+    CCrudTable,
+    TableColumn as TC,
+    CCreate,
+    ActionLink,
+    CRead,
+)
 from jembe_auth_demo.models import User, Group
 from wtforms import (
     StringField,
@@ -16,7 +21,8 @@ from wtforms.fields.html5 import EmailField
 import sqlalchemy as sa
 
 if TYPE_CHECKING:
-    from jembe import Event, Component
+    from jembe import Component
+
 __all__ = ("CUsers",)
 
 
@@ -50,9 +56,18 @@ class UserForm(JembeForm):
     groups_ids = SelectMultipleField(coerce=int)
 
     def mount(self, component: "Component"):
-        self.groups_ids.choices = [
-            (g.id, g.title) for g in db.session.query(Group)[:100]
-        ]
+        if self.is_readonly:
+            self.set_readonly_all()
+            self.groups_ids.choices = [
+                (g.id, g.title)
+                for g in db.session.query(Group).filter(
+                    Group.id.in_(self.groups_ids.data)
+                )[:100]
+            ]
+        else:
+            self.groups_ids.choices = [
+                (g.id, g.title) for g in db.session.query(Group)[:100]
+            ]
         return super().mount(component)
 
 
@@ -66,13 +81,22 @@ class UserForm(JembeForm):
             TC(User.last_name),
             TC(User.email),
         ],
-        top_menu=[ActionLink("create", "Add")],
         components=dict(
             create=(
                 CCreate,
                 CCreate.Config(db=db, model=User, form=UserForm, title="Add User"),
-            )
+            ),
+            read=(CRead, CRead.Config(db=db, model=User, form=UserForm)),
         ),
+        top_menu=[ActionLink("create", "Add")],
+        record_menu=[
+            ActionLink(
+                lambda self, record: self.component(  # type:ignore
+                    "read", id=record.id, _record=record
+                ),
+                "View",
+            )
+        ],
     )
 )
 class CUsers(CCrudTable):

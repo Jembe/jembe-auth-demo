@@ -222,11 +222,19 @@ class CCrudTable(CTable):
                 changes_url=changes_url,
                 url_query_params=url_query_params,
             )
-            self.supported_display_modes = [
+            self.crud_display_modes = [
                 cname
                 for cname, cclass in self.components_classes.items()
                 if issubclass(cclass, (CCreate, CRead))
             ]
+            self.default_read_display_mode = next(
+                (
+                    cname
+                    for cname, cclass in self.components_classes.items()
+                    if issubclass(cclass, CRead)
+                ),
+                None,
+            )
 
     _config: Config
 
@@ -238,22 +246,37 @@ class CCrudTable(CTable):
         search_query: Optional[str] = None,
         display_mode: Optional[str] = None,
     ):
-        if display_mode is not None and (
-            display_mode not in self._config.supported_display_modes
-            or display_mode.startswith("_")
-        ):
-            self.state.display_mode = None
-
         super().__init__(
             order_by=order_by, page=page, page_size=page_size, search_query=search_query
         )
 
+        if display_mode is not None and (
+            display_mode not in self._config.crud_display_modes
+            or display_mode.startswith("_")
+        ):
+            self.state.display_mode = None
+
+        # used when redirecting to crud component
+        self.goto_record = None
+        self.goto_id = None
+
     @listener(event="_display", source="./*")
     def on_child_display(self, event: "Event"):
-        if event.source_name in self._config.supported_display_modes:
+        if event.source_name in self._config.crud_display_modes:
             self.state.display_mode = event.source_name
 
     @listener(event=["save", "cancel"], source="./*")
-    def on_child_finish(self, event: "Event"):
-        if event.source_name in self._config.supported_display_modes:
-            self.state.display_mode = None
+    def on_child_finised(self, event: "Event"):
+        if event.source_name in self._config.crud_display_modes:
+            if event.record_id is not None:
+                self.state.display_mode = self._config.default_read_display_mode
+                self.goto_record = event.record
+                self.goto_id = event.record_id
+            else:
+                self.state.display_mode = None
+
+    def display(self) -> Union[str, "Response"]:
+        if self.state.display_mode not in self._config.crud_display_modes:
+            self.goto_id = None
+            self.goto_record = None
+        return super().display()

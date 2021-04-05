@@ -1,5 +1,7 @@
 {% if display_mode == none %}
     {% include _config.table_template %}
+{% elif goto_id is not none %}
+    {{component(display_mode, id=goto_id, _record=goto_record)}}
 {% else %}
     {{component(display_mode)}}
 {% endif %}

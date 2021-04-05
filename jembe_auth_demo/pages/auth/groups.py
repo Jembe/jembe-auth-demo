@@ -1,9 +1,7 @@
-from sqlalchemy.orm import session
-from jembe_auth_demo.models.auth import User
 from jembe_auth_demo.pages.common.link import ActionLink
 from typing import TYPE_CHECKING
 from jembe import config
-from jembe_auth_demo.models import Group
+from jembe_auth_demo.models import Group, User
 from jembe_auth_demo.db import db
 from jembe_auth_demo.pages.common import (
     CCrudTable,
@@ -28,7 +26,7 @@ class GroupForm(JembeForm):
         validators=[
             validators.DataRequired(),
             validators.Length(max=Group.title.type.length),
-        ]
+        ],
     )
     title = StringField(
         validators=[
@@ -40,10 +38,17 @@ class GroupForm(JembeForm):
     users_ids = SelectMultipleField("Users", coerce=int)
 
     def mount(self, component: "Component") -> "JembeForm":
-        self.users_ids.choices = [
-            (u.id, "{} {}".format(u.first_name, u.last_name))
-            for u in db.session.query(User)
-        ]
+        if self.is_readonly:
+            self.set_readonly_all()
+            self.users_ids.choices = [
+                (u.id, "{} {}".format(u.first_name, u.last_name))
+                for u in db.session.query(User).filter(User.id.in_(self.users_ids.data))
+            ]
+        else:
+            self.users_ids.choices = [
+                (u.id, "{} {}".format(u.first_name, u.last_name))
+                for u in db.session.query(User)
+            ]
         return super().mount(component)
 
 
