@@ -15,7 +15,6 @@ if TYPE_CHECKING:
 __all__ = ("Page",)
 
 
-@config(Component.Config(template="common/page.html"))
 class Page(Component):
     class Config(Component.Config):
         def __init__(
@@ -53,6 +52,10 @@ class Page(Component):
             if "_progress_indicator" not in components:
                 components["_progress_indicator"] = CProgressIndicator
 
+            self.default_template = "common/page.html"
+            if template is None:
+                template = ("", self.default_template)
+
             super().__init__(
                 template=template,
                 components=components,
@@ -79,7 +82,7 @@ class Page(Component):
         ):
             try:
                 self.state.display_mode = self._config.supported_display_modes[0]
-            except IndentationError:
+            except IndexError:
                 self.state.display_mode = None
         super().__init__()
 

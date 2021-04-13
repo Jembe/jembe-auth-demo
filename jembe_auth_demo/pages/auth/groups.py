@@ -7,8 +7,9 @@ from jembe_auth_demo.pages.common import (
     CCrudTable,
     TableColumn as TC,
     CCreate,
-    ActionLink,
     CRead,
+    CUpdate,
+    ActionLink,
 )
 import sqlalchemy as sa
 from wtforms import StringField, TextAreaField, validators, SelectMultipleField
@@ -25,7 +26,7 @@ class GroupForm(JembeForm):
     name = StringField(
         validators=[
             validators.DataRequired(),
-            validators.Length(max=Group.title.type.length),
+            validators.Length(max=Group.name.type.length),
         ],
     )
     title = StringField(
@@ -63,9 +64,29 @@ class CCreateGroup(CCreate):
         form=GroupForm,
         model=Group,
         title=lambda component: "Group: {}".format(component.record.title),
+        top_menu=[
+            ActionLink(
+                lambda self: self.component( # type:ignore
+                    "../update", id=self.record.id, _record=self.record # type:ignore
+                ),
+                "Edit",
+            )
+        ],
     )
 )
 class CReadGroup(CRead):
+    pass
+
+
+@config(
+    CUpdate.Config(
+        db=db,
+        form=GroupForm,
+        model=Group,
+        title=lambda component: "Group: {}".format(component.record.title),
+    )
+)
+class CUpdateGroup(CUpdate):
     pass
 
 
@@ -84,7 +105,8 @@ class CReadGroup(CRead):
             ActionLink("create", "Add"),
         ],
         record_menu=[
-            ActionLink(lambda self, record: self.component("read", id=record.id, _record=record), "View")  # type: ignore
+            ActionLink(lambda self, record: self.component("read", id=record.id, _record=record), "View"),  # type: ignore
+            ActionLink(lambda self, record: self.component("update", id=record.id, _record=record), "Edit"),  # type: ignore
         ],
         # record_menu = [
         #   CAction(lambda self, record: self.component('edit',id=record.id), "Edit", icon)
@@ -92,7 +114,7 @@ class CReadGroup(CRead):
         # ]
         # field_links = {}
         # bulk_menu =[]
-        components=dict(create=CCreateGroup, read=CReadGroup),
+        components=dict(create=CCreateGroup, read=CReadGroup, update=CUpdateGroup),
     )
 )
 class CGroups(CCrudTable):

@@ -1,11 +1,9 @@
-from typing import Any, TYPE_CHECKING, Callable, Dict, Iterable, Optional, Tuple, Union
+from typing import Any, List, TYPE_CHECKING, Callable, Dict, Iterable, Optional, Tuple, Union
 
 from jembe_auth_demo.common import JembeForm
-from jembe_auth_demo.db.exceptions import DBError
-from .confirmation import OnConfirmationMixin, Confirmation
-from .notifications import Notification
-from jembe import Component, action, run_only_once
-import sqlalchemy as sa
+from .link import Link
+from .menu import Menu
+from jembe import Component
 
 if TYPE_CHECKING:
     from jembe import ComponentRef, RedisplayFlag, ComponentConfig
@@ -24,6 +22,7 @@ class CRead(Component):
             model: "Model",
             form: "JembeForm",
             title: Optional[Union[str, Callable[["Component"], str]]] = None,
+            top_menu: Optional[Union[List[Union["Link", "Menu"]], "Menu"]] = None,
             template: Optional[Union[str, Iterable[str]]] = None,
             components: Optional[Dict[str, "ComponentRef"]] = None,
             inject_into_components: Optional[
@@ -41,6 +40,12 @@ class CRead(Component):
             self.default_template = "common/read.html"
             if template is None:
                 template = ("", self.default_template)
+            
+            self.top_menu: "Menu" = (
+                Menu()
+                if top_menu is None
+                else (Menu(top_menu) if not isinstance(top_menu, Menu) else top_menu)
+            )
 
             super().__init__(
                 template=template,
@@ -78,4 +83,6 @@ class CRead(Component):
         self.model_info = getattr(self._config.model, "__table_args__", dict()).get(
             "info", dict()
         )
+        # initialise menues
+        self.top_menu = self._config.top_menu.bind_to(self)
         return super().display()

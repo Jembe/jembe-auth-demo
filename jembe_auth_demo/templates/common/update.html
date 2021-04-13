@@ -3,20 +3,18 @@
         {{title}}
     </h1>
     <div class="flex">
-    {% if top_menu.items %}
     <div class="relative z-0 inline-flex ml-6 rounded-md shadow-sm">
-      {% for mi in top_menu.items %}
-      {% if mi.is_accessible %}
       <button 
-          {% if mi.url is not none %} href="{{mi.url}}" {% endif %} 
-          {% if mi.jrl is not none %} jmb-on:click.stop.prevent="{{mi.jrl}}" {% endif %} 
-          class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 {% if loop.first %} rounded-l-md {%endif%} {% if not loop.first %} -ml-px  {% endif  %} {%if loop.last %}  rounded-r-md  {% endif %}">
-        {{mi.title}}
+          jmb-on:click.stop.prevent="cancel()" 
+          class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 rounded-l-md ">
+        Cancel
       </button>
-      {% endif %}
-      {% endfor %}
+      <button 
+          jmb-on:click.stop.prevent="save()" 
+          class="relative inline-flex items-center px-4 py-2 -ml-px text-sm font-medium text-white bg-indigo-600 border border-gray-300 hover:bg-indigo-700 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 rounded-r-md ">
+        Save
+      </button>
     </div>
-    {% endif %}
     </div>
   </div>
 </header>
@@ -35,11 +33,11 @@
         {% if not field.errors %}
         
         <div class="mt-1">
-          {{field(**{"id":false, "class":"shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"})}}
+          {{field(**{"jmb-model.defer":"form." + field.name,"jmb-on:change.defer":"is_modified=true", "id":false, "class":"shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"})}}
         </div>
         {% else %}
         <div class="relative mt-1 rounded-md shadow-sm">
-          {{field(**{"id":false, "class":"block w-full pr-10 text-red-900 placeholder-red-300 border-red-300 rounded-md focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"})}}
+          {{field(**{"jmb-on:change.defer":"form." + field.name + " =  $self.value", "id":false, "class":"block w-full pr-10 text-red-900 placeholder-red-300 border-red-300 rounded-md focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"})}}
           <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
             <!-- Heroicon name: solid/exclamation-circle -->
             <svg class="w-5 h-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">

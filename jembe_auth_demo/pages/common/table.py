@@ -6,6 +6,7 @@ from jembe import Component, listener
 from jembe_auth_demo.pages.common import Link, Menu
 from .create import CCreate
 from .read import CRead
+from .update import CUpdate
 
 if TYPE_CHECKING:
     from jembe import Event
@@ -225,7 +226,7 @@ class CCrudTable(CTable):
             self.crud_display_modes = [
                 cname
                 for cname, cclass in self.components_classes.items()
-                if issubclass(cclass, (CCreate, CRead))
+                if issubclass(cclass, (CCreate, CRead, CUpdate))
             ]
             self.default_read_display_mode = next(
                 (
