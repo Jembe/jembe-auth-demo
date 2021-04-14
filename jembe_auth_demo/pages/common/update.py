@@ -136,7 +136,7 @@ class CUpdate(OnConfirmationMixin, Component):
                 ),
             )
         else:
-            self.emit("cancel")
+            self.emit("cancel", record_id=self.record.id, record=self.record)
             return False
 
     def display(self) -> Union[str, "Response"]:

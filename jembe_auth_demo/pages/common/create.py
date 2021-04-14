@@ -22,7 +22,7 @@ class CCreate(OnConfirmationMixin, Component):
             db: "SQLAlchemy",
             model: "Model",
             form: "JembeForm",
-            title: Optional[Union[str,Callable[["Component"],str]]] = None,
+            title: Optional[Union[str, Callable[["Component"], str]]] = None,
             template: Optional[Union[str, Iterable[str]]] = None,
             components: Optional[Dict[str, "ComponentRef"]] = None,
             inject_into_components: Optional[
@@ -118,7 +118,7 @@ class CCreate(OnConfirmationMixin, Component):
                 ),
             )
         else:
-            self.emit("cancel")
+            self.emit("cancel", record_id=None, record=None)
             return False
 
     def display(self) -> Union[str, "Response"]:
@@ -129,7 +129,7 @@ class CCreate(OnConfirmationMixin, Component):
         return super().display()
 
     @property
-    def title(self) ->str:
+    def title(self) -> str:
         if isinstance(self._config.title, str):
             return self._config.title
         return self._config.title(self)
