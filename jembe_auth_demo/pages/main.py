@@ -10,8 +10,18 @@ from .auth import CGroups, CUsers
         page_title="JAD",
         main_menu=[
             ActionLink("/main/dash", "Dashboard"),
-            ActionLink("/main/users", "Users"),
-            ActionLink("/main/groups", "Groups"),
+            ActionLink(
+                lambda self: self.component(  # type:ignore
+                    "/main/users", display_mode=None
+                ),
+                "Users",
+            ),
+            ActionLink(
+                lambda self: self.component(  # type:ignore
+                    "/main/groups", display_mode=None
+                ),
+                "Groups",
+            ),
         ],
         components={
             "dash": Dashboard,

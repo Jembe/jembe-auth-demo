@@ -1,6 +1,6 @@
-from jembe_auth_demo.pages.common.link import ActionLink
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict, Any
 from jembe import config
+from jembe.component_config import listener
 from jembe_auth_demo.models import Group, User
 from jembe_auth_demo.db import db
 from jembe_auth_demo.pages.common import (
@@ -9,6 +9,7 @@ from jembe_auth_demo.pages.common import (
     CCreate,
     CRead,
     CUpdate,
+    CDelete,
     ActionLink,
 )
 import sqlalchemy as sa
@@ -16,7 +17,7 @@ from wtforms import StringField, TextAreaField, validators, SelectMultipleField
 from jembe_auth_demo.common import JembeForm
 
 if TYPE_CHECKING:
-    from jembe import Component
+    from jembe import Component, Event
 
 
 __all__ = ("CGroups",)
@@ -66,17 +67,32 @@ class CCreateGroup(CCreate):
         title=lambda component: "Group: {}".format(component.record.title),
         top_menu=[
             ActionLink(
-                lambda self: self.component( # type:ignore
-                    "../update", id=self.record.id, _record=self.record # type:ignore
+                lambda self: self.component(  # type:ignore
+                    "../update", id=self.record.id, _record=self.record  # type:ignore
                 ),
                 "Edit",
-            )
+            ),
+            ActionLink("delete", "Delete"),
         ],
+        components=dict(delete=(CDelete, CDelete.Config(db=db, model=Group))),
+        inject_into_components=lambda self, cconfig: dict(
+            id=self.record.id, _record=self.record
+        )
+        if cconfig.name == "delete"
+        else dict(),  # type:ignore
     )
 )
 class CReadGroup(CRead):
-    pass
+    # def inject_into(self, component: "Component") -> Dict[str, Any]:
+    #     from pdb import set_trace; set_trace()
+    #     if component._config.name == "delete":
+    #         return dict(id=self.record.id, _record=self.record)
+    #     return super().inject_into(component)
 
+    @listener(event="delete", source="./*")
+    def on_delete(self, event:"Event"):
+        self.emit("delete", id=self.state.id)
+        return False
 
 @config(
     CUpdate.Config(
@@ -87,6 +103,17 @@ class CReadGroup(CRead):
     )
 )
 class CUpdateGroup(CUpdate):
+    pass
+
+
+@config(
+    CDelete.Config(
+        db=db,
+        model=Group,
+        title=lambda component: 'Delete "{}"?'.format(component.record.title),
+    )
+)
+class CDeleteGroup(CDelete):
     pass
 
 
@@ -107,14 +134,16 @@ class CUpdateGroup(CUpdate):
         record_menu=[
             ActionLink(lambda self, record: self.component("read", id=record.id, _record=record), "View"),  # type: ignore
             ActionLink(lambda self, record: self.component("update", id=record.id, _record=record), "Edit"),  # type: ignore
+            ActionLink(lambda self, record: self.component("delete", id=record.id, _record=record), "Delete"),  # type: ignore
         ],
-        # record_menu = [
-        #   CAction(lambda self, record: self.component('edit',id=record.id), "Edit", icon)
-        #   CAction(lambda self, record: self.component('view',id=record.id) if not self.component('edit', id=record.id).is_accessile() else None, "View", icon)
-        # ]
         # field_links = {}
         # bulk_menu =[]
-        components=dict(create=CCreateGroup, read=CReadGroup, update=CUpdateGroup),
+        components=dict(
+            create=CCreateGroup,
+            read=CReadGroup,
+            update=CUpdateGroup,
+            delete=CDeleteGroup,
+        ),
     )
 )
 class CGroups(CCrudTable):

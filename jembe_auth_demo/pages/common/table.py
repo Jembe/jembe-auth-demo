@@ -1,3 +1,4 @@
+from jembe_auth_demo.pages.common.delete import CDelete
 from typing import TYPE_CHECKING, Optional, Union, Iterable, Dict, Callable, Tuple, List
 from math import ceil
 import sqlalchemy as sa
@@ -58,8 +59,6 @@ class TableColumn:
         return value if value is not None else ""
 
 
-# TODO aplly this params event if config exists
-# @config(Component.Config(url_query_params=dict(o="order_by")))
 class CTable(Component):
     class Config(Component.Config):
         def __init__(
@@ -236,6 +235,11 @@ class CCrudTable(CTable):
                 ),
                 None,
             )
+            self.delete_components = [
+                cname
+                for cname, cclass in self.components_classes.items()
+                if issubclass(cclass, (CDelete))
+            ]
 
     _config: Config
 
@@ -265,6 +269,15 @@ class CCrudTable(CTable):
     def on_child_display(self, event: "Event"):
         if event.source_name in self._config.crud_display_modes:
             self.state.display_mode = event.source_name
+
+    @listener(event="delete", source="./*")
+    def on_child_deleted(self, event: "Event"):
+        if (
+            event.source_name in self._config.delete_components
+            or event.source_name in self._config.crud_display_modes
+        ):
+            self.state.display_mode = None
+            return True
 
     @listener(event=["save", "cancel"], source="./*")
     def on_child_finised(self, event: "Event"):

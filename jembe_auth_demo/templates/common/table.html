@@ -86,7 +86,8 @@
                 {% if record_menu.items %}
                   <td class="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
                     {% for mi in record_menu.items %}
-                    {% if mi.set(record=record).is_accessible %}
+                    {% set mi = mi.set(record=record)%}
+                    {% if mi.is_accessible %}
                     <a 
                         {% if mi.url is not none %} href="{{mi.url}}" {% endif %} 
                         {% if mi.jrl is not none %} jmb-on:click.stop.prevent="{{mi.jrl}}" {% endif %} 

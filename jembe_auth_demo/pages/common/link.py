@@ -86,10 +86,12 @@ class Link:
 
     def set(self, **kwargs) -> "Link":
         """Add additional paramas for callables and resets previous ones"""
-        self.callable_params = dict()
+        # setting additional params can change action output
+        link = copy(self)
+        link.callable_params = dict()
         for k, v in kwargs.items():
-            self.callable_params[k] = v
-        return self
+            link.callable_params[k] = v
+        return link
 
 
 class ActionLink(Link):

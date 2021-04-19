@@ -33,7 +33,10 @@ Make wtforms better for me:
 ✔ Add user create action @done(21-03-30 12:33)
 ✔ Use raw wtforms @done(21-03-30 12:33)
 ✔ Read form should not be editable @done(21-04-05 12:15)
-☐ Add edit component
+✔ Add edit component @done(21-04-14 12:39)
+✔ When click on groups in menu dont reset pagination just display mode if groups is active @done(21-04-19 18:10)
+☐ FIx inject_into component method to work
+☐ Delete event stop propagation on down
 ☐ Add delete component
 ☐ Add bulk delete component
 ☐ Add prev next navigation on read component

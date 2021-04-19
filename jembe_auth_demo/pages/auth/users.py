@@ -8,6 +8,7 @@ from jembe_auth_demo.pages.common import (
     CCreate,
     ActionLink,
     CRead,
+    CUpdate,
 )
 from jembe_auth_demo.models import User, Group
 from wtforms import (
@@ -86,7 +87,25 @@ class UserForm(JembeForm):
                 CCreate,
                 CCreate.Config(db=db, model=User, form=UserForm, title="Add User"),
             ),
-            read=(CRead, CRead.Config(db=db, model=User, form=UserForm)),
+            read=(
+                CRead,
+                CRead.Config(
+                    db=db,
+                    model=User,
+                    form=UserForm,
+                    top_menu=[
+                        ActionLink(
+                            lambda self: self.component(  # type:ignore
+                                "../update",
+                                id=self.record.id,  # type:ignore
+                                _record=self.record,  # type:ignore
+                            ),
+                            "Edit",
+                        )
+                    ],
+                ),
+            ),
+            update=(CUpdate, CUpdate.Config(db=db, model=User, form=UserForm)),
         ),
         top_menu=[ActionLink("create", "Add")],
         record_menu=[
@@ -95,7 +114,13 @@ class UserForm(JembeForm):
                     "read", id=record.id, _record=record
                 ),
                 "View",
-            )
+            ),
+            ActionLink(
+                lambda self, record: self.component(  # type:ignore
+                    "update", id=record.id, _record=record
+                ),
+                "Edit",
+            ),
         ],
     )
 )
