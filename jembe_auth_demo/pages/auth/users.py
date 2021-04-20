@@ -1,3 +1,4 @@
+from jembe.component_config import listener
 from jembe_auth_demo.common.forms import JembeForm
 from typing import TYPE_CHECKING
 from jembe import config
@@ -9,6 +10,7 @@ from jembe_auth_demo.pages.common import (
     ActionLink,
     CRead,
     CUpdate,
+    CDelete,
 )
 from jembe_auth_demo.models import User, Group
 from wtforms import (
@@ -101,11 +103,19 @@ class UserForm(JembeForm):
                                 _record=self.record,  # type:ignore
                             ),
                             "Edit",
-                        )
+                        ),
+                        ActionLink("delete", "Delete"),
                     ],
+                    components={"delete": (CDelete, CDelete.Config(db=db, model=User))},
+                    inject_into_components=lambda self, cconfig: dict(
+                        id=self.record.id, _record=self.record
+                    )
+                    if cconfig.name in ("delete",)
+                    else dict(),
                 ),
             ),
             update=(CUpdate, CUpdate.Config(db=db, model=User, form=UserForm)),
+            delete=(CDelete, CDelete.Config(db=db, model=User)),
         ),
         top_menu=[ActionLink("create", "Add")],
         record_menu=[
@@ -121,8 +131,16 @@ class UserForm(JembeForm):
                 ),
                 "Edit",
             ),
+            ActionLink(
+                lambda self, record: self.component(  # type:ignore
+                    "delete", id=record.id, _record=record
+                ),
+                "Delete",
+            ),
         ],
     )
 )
 class CUsers(CCrudTable):
-    pass
+    @listener(event="delete", source="./read/delete")
+    def on_delete(self, event):
+        self.state.display_mode = None

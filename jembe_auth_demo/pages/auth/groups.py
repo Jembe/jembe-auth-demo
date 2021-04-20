@@ -17,7 +17,7 @@ from wtforms import StringField, TextAreaField, validators, SelectMultipleField
 from jembe_auth_demo.common import JembeForm
 
 if TYPE_CHECKING:
-    from jembe import Component, Event
+    from jembe import Component, Event, ComponentConfig
 
 
 __all__ = ("CGroups",)
@@ -75,24 +75,19 @@ class CCreateGroup(CCreate):
             ActionLink("delete", "Delete"),
         ],
         components=dict(delete=(CDelete, CDelete.Config(db=db, model=Group))),
-        inject_into_components=lambda self, cconfig: dict(
-            id=self.record.id, _record=self.record
-        )
-        if cconfig.name == "delete"
-        else dict(),  # type:ignore
+        # inject_into_components=lambda self, cconfig: dict(
+        #     id=self.record.id, _record=self.record
+        # )
+        # if cconfig.name == "delete"
+        # else dict(),  # type:ignore
     )
 )
 class CReadGroup(CRead):
-    # def inject_into(self, component: "Component") -> Dict[str, Any]:
-    #     from pdb import set_trace; set_trace()
-    #     if component._config.name == "delete":
-    #         return dict(id=self.record.id, _record=self.record)
-    #     return super().inject_into(component)
+    def inject_into(self, cconfig: "ComponentConfig") -> Dict[str, Any]:
+        if cconfig.name == "delete":
+            return dict(id=self.record.id, _record=self.record)
+        return super().inject_into(cconfig)
 
-    @listener(event="delete", source="./*")
-    def on_delete(self, event:"Event"):
-        self.emit("delete", id=self.state.id)
-        return False
 
 @config(
     CUpdate.Config(
@@ -147,4 +142,6 @@ class CDeleteGroup(CDelete):
     )
 )
 class CGroups(CCrudTable):
-    pass
+    @listener(event="delete", source="./read/delete")
+    def on_delete(self, event:"Event"):
+        self.state.display_mode = None

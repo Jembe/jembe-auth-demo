@@ -274,7 +274,6 @@ class CCrudTable(CTable):
     def on_child_deleted(self, event: "Event"):
         if (
             event.source_name in self._config.delete_components
-            or event.source_name in self._config.crud_display_modes
         ):
             self.state.display_mode = None
             return True
