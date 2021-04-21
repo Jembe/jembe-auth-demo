@@ -2,11 +2,13 @@ import os
 from flask import Flask
 from . import jmb, db
 
+
 def create_app(config=None):
     from . import models, views, pages, commands
 
     app = Flask(__name__, instance_relative_config=True)
-    # app.config.from_mapping({SECRET_KEY="dev",})
+    # make csrf cookie valid for whole session
+    app.config.from_mapping({"CSRF_COOKIE_TIMEOUT": None})
     if config is not None:
         if isinstance(config, dict):
             app.config.from_mapping(config)

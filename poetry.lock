@@ -168,6 +168,17 @@ Flask = ">=0.9"
 Flask-SQLAlchemy = ">=1.0"
 
 [[package]]
+name = "flask-seasurf"
+version = "0.3.0"
+description = "An updated CSRF extension for Flask."
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+Flask = "*"
+
+[[package]]
 name = "flask-sqlalchemy"
 version = "2.4.4"
 description = "Adds SQLAlchemy support to your Flask application."
@@ -513,7 +524,7 @@ WTForms = ">=1.0.5"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "c487f4e2c60ac4bdaf87a986438c1f5c225d3df01a3752bebe578438dd0abe39"
+content-hash = "c5888d95e6c0a9e252e2391aba92e007455d37fd1453a1641c48f768d9a121fc"
 
 [metadata.files]
 alembic = [
@@ -567,6 +578,10 @@ flask-babel = [
 flask-migrate = [
     {file = "Flask-Migrate-2.7.0.tar.gz", hash = "sha256:ae2f05671588762dd83a21d8b18c51fe355e86783e24594995ff8d7380dffe38"},
     {file = "Flask_Migrate-2.7.0-py2.py3-none-any.whl", hash = "sha256:26871836a4e46d2d590cf8e558c6d60039e1c003079b240689d845726b6b57c0"},
+]
+flask-seasurf = [
+    {file = "Flask-SeaSurf-0.3.0.tar.gz", hash = "sha256:10d4946fdd9745a8ae0a38a46c48a9add0cca4896333c0893b3133e3852c2e80"},
+    {file = "Flask_SeaSurf-0.3.0-py3-none-any.whl", hash = "sha256:505c1101e5489ef3505bb6d6bc722808ed4e6882606e07006d9914c06fb5878c"},
 ]
 flask-sqlalchemy = [
     {file = "Flask-SQLAlchemy-2.4.4.tar.gz", hash = "sha256:bfc7150eaf809b1c283879302f04c42791136060c6eeb12c0c6674fb1291fae5"},
