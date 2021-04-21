@@ -76,6 +76,14 @@ colorama = ["colorama (>=0.4.3)"]
 d = ["aiohttp (>=3.3.2)", "aiohttp-cors"]
 
 [[package]]
+name = "cachelib"
+version = "0.1.1"
+description = "A collection of cache libraries in the same API interface."
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "click"
 version = "7.1.2"
 description = "Composable command line interface toolkit"
@@ -177,6 +185,18 @@ python-versions = "*"
 
 [package.dependencies]
 Flask = "*"
+
+[[package]]
+name = "flask-session"
+version = "0.3.2"
+description = "Adds server-side session support to your Flask application"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+cachelib = "*"
+Flask = ">=0.8"
 
 [[package]]
 name = "flask-sqlalchemy"
@@ -524,7 +544,7 @@ WTForms = ">=1.0.5"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "c5888d95e6c0a9e252e2391aba92e007455d37fd1453a1641c48f768d9a121fc"
+content-hash = "08875433cf9a1ba1e0fa37b5ce908d9e85f04bbce8bed0e331ca071c44e3f5aa"
 
 [metadata.files]
 alembic = [
@@ -550,6 +570,10 @@ babel = [
 black = [
     {file = "black-20.8b1-py3-none-any.whl", hash = "sha256:70b62ef1527c950db59062cda342ea224d772abdf6adc58b86a45421bab20a6b"},
     {file = "black-20.8b1.tar.gz", hash = "sha256:1c02557aa099101b9d21496f8a914e9ed2222ef70336404eeeac8edba836fbea"},
+]
+cachelib = [
+    {file = "cachelib-0.1.1-py3-none-any.whl", hash = "sha256:7df6e05b8dfccdeb869e171575580e5606cf1e82a166633b3cb406bc4f113fd0"},
+    {file = "cachelib-0.1.1.tar.gz", hash = "sha256:47e95a67d68c729cbad63285a790a06f0e0d27d71624c6e44c1ec3456bb4476f"},
 ]
 click = [
     {file = "click-7.1.2-py2.py3-none-any.whl", hash = "sha256:dacca89f4bfadd5de3d7489b7c8a566eee0d3676333fbb50030263894c38c0dc"},
@@ -582,6 +606,10 @@ flask-migrate = [
 flask-seasurf = [
     {file = "Flask-SeaSurf-0.3.0.tar.gz", hash = "sha256:10d4946fdd9745a8ae0a38a46c48a9add0cca4896333c0893b3133e3852c2e80"},
     {file = "Flask_SeaSurf-0.3.0-py3-none-any.whl", hash = "sha256:505c1101e5489ef3505bb6d6bc722808ed4e6882606e07006d9914c06fb5878c"},
+]
+flask-session = [
+    {file = "Flask-Session-0.3.2.tar.gz", hash = "sha256:0768e2bbf06f963ec1aa711bde7aa32dc39ff70f89b495d6db687d899eae4423"},
+    {file = "Flask_Session-0.3.2-py2.py3-none-any.whl", hash = "sha256:d75eb27f918421ccaf1ba86353348b84ecf07fc64ce40ff7ad05a190c4bf50f1"},
 ]
 flask-sqlalchemy = [
     {file = "Flask-SQLAlchemy-2.4.4.tar.gz", hash = "sha256:bfc7150eaf809b1c283879302f04c42791136060c6eeb12c0c6674fb1291fae5"},

@@ -38,7 +38,7 @@ Make wtforms better for me:
 ✔ FIx inject_into component method to work @done(21-04-20 16:24)
 ✘ Delete event stop propagation on down @cancelled(21-04-20 16:30)
 ✔ Add delete component @done(21-04-19 22:38)
-☐ Store session to db or memcached
+✔ Store session to db or memcached @done(21-04-21 15:02)
 ☐ Add bulk delete component
 ☐ Add prev next navigation on read component
 ☐ Add bread crumb to return to groups
