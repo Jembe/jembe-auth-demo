@@ -116,12 +116,12 @@
         {# 
           add recursivly to for loop to support is_group and if it's group check if $local.activeGroups.includes('{{mi.id}}') 
         #}
-        {% for mi in _config.items  %}
+        {% for mi in menu.items  %}
         {% if mi.is_accessible %}
         <a {% if mi.url is not none %} href="{{mi.url}}" {% endif %} 
             {% if mi.jrl is not none %} jmb-on:click.stop.prevent="{{mi.jrl}}" {% endif %} 
             class="block py-2 pl-3 pr-4 text-base font-medium border-l-4"
-            {% if mi.is_component %}
+            {% if mi.is_action_link %}
                 jmb-bind:class="{
                   'text-gray-600 border-transparent hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800':
                       !$local.componentsOnPage.includes('{{mi.exec_name}}'),
@@ -131,7 +131,7 @@
             {% else %}
                 jmb-bind:class="{
                   'text-gray-600 border-transparent hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800': 
-                      window.location.pathname !=='{{mi.pathname}}',
+                      window.location.pathname !== '{{mi.pathname}}',
                   'text-indigo-700 border-indigo-500 bg-indigo-50':  
                     window.location.pathname === '{{mi.pathname}}'
                 }"
