@@ -1,5 +1,7 @@
 from sqlalchemy.ext.associationproxy import association_proxy
+from werkzeug.security import check_password_hash, generate_password_hash
 from jembe_auth_demo.db import db
+from flask_login import UserMixin
 import sqlalchemy as sa
 
 __all__ = (
@@ -14,7 +16,7 @@ users_groups = db.Table(
 )
 
 
-class User(db.Model):
+class User(UserMixin, db.Model):
     __tablename__ = "users"
     __table_args__ = dict(info=dict(verbose_name="User", verbose_name_plurkal="Users"))
 
@@ -43,6 +45,16 @@ class User(db.Model):
     groups_ids = association_proxy(
         "groups", "id", creator=lambda id: db.session.query(Group).get(id)
     )
+
+    @property
+    def is_active(self):
+        return self.active
+
+    def set_password(self, password: str):
+        self.password = generate_password_hash(password)
+
+    def check_password(self, password: str) -> bool:
+        return check_password_hash(self.password, password)
 
     def __str__(self) -> str:
         return "{} {}".format(self.first_name, self.last_name)

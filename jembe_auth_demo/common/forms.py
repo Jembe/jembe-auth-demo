@@ -6,6 +6,8 @@ from wtforms.form import Form, FormMeta
 if TYPE_CHECKING:
     from jembe import Component
     from wtforms import Field
+    from flask_sqlalchemy import Model
+    from sqlalchemy.orm.session import Session
 
 
 __all__ = ("JembeForm",)
@@ -41,6 +43,9 @@ class JembeForm(JembeInitParamSupport, Form, metaclass=JembeFormMeta):
 
     def mount(self, component: "Component") -> "JembeForm":
         return self
+
+    def submit(self, session: "Session", record: "Model", **kwargs):
+        self.populate_obj(record)
 
     def setdefault(self, field: "Field", param_name: str, value: Any) -> Any:
         if field.render_kw is None:

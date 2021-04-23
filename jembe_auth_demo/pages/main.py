@@ -1,7 +1,7 @@
 from jembe_auth_demo.jmb import jmb
-from .common import Page, ActionLink
+from .common import Page, ActionLink, PageBase
 from .dashboard import Dashboard
-from .auth import CGroups, CUsers
+from .auth import CGroups, CUsers, CLogin
 
 
 @jmb.page(
@@ -31,4 +31,13 @@ from .auth import CGroups, CUsers
     ),
 )
 class MainPage(Page):
+    pass
+
+
+@jmb.page("auth", PageBase.Config(
+    components=dict(
+        login=CLogin
+    )
+))
+class LoginPage(PageBase):
     pass

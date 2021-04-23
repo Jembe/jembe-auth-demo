@@ -99,8 +99,8 @@ class CUpdate(OnConfirmationMixin, Component):
         self.mount()
         if self.state.form.validate():
             try:
-                self.state.form.populate_obj(self.record)
-                self._config.db.session.add(self.record)
+                self.state.form.submit(self._config.db.session, self.record)
+                # self.state.form.populate_obj(self.record)
                 self._config.db.session.commit()
                 self.emit("save", record=self.record, record_id=self.record.id)
                 self.emit(

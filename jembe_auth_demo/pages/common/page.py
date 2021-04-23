@@ -12,11 +12,13 @@ if TYPE_CHECKING:
     from .link import Link
     from .menu import Menu
 
-__all__ = ("Page",)
+__all__ = ("Page", "PageBase")
 
 
-class Page(Component):
+class PageBase(Component):
     class Config(Component.Config):
+        default_template = "common/page_base.html"
+
         def __init__(
             self,
             page_title: str = "",
@@ -38,11 +40,6 @@ class Page(Component):
 
             if "_title" not in components:
                 components["_title"] = (PageTitle, PageTitle.Config(title=page_title))
-            if "_main_menu" not in components:
-                components["_main_menu"] = (
-                    CMenu,
-                    CMenu.Config(menu=main_menu, template="common/main_menu.html"),
-                )
             if "_confirmation" not in components:
                 components["_confirmation"] = CConfirmationDialog
             if "_notifications" not in components:
@@ -52,7 +49,6 @@ class Page(Component):
             if "_progress_indicator" not in components:
                 components["_progress_indicator"] = CProgressIndicator
 
-            self.default_template = "common/page.html"
             if template is None:
                 template = ("", self.default_template)
 
@@ -90,3 +86,38 @@ class Page(Component):
     def on_child_display(self, event: "Event"):
         if event.source_name in self._config.supported_display_modes:
             self.state.display_mode = event.source_name
+
+
+class Page(PageBase):
+    class Config(PageBase.Config):
+        default_template = "common/page.html"
+
+        def __init__(
+            self,
+            page_title: str = "",
+            main_menu: Optional[Union[List[Union["Link", "Menu"]], "Menu"]] = None,
+            template: Optional[Union[str, Iterable[str]]] = None,
+            components: Optional[Dict[str, "ComponentRef"]] = None,
+            inject_into_components: Optional[
+                Callable[["Component", "ComponentConfig"], dict]
+            ] = None,
+            redisplay: Tuple["RedisplayFlag", ...] = (),
+            changes_url: bool = True,
+            url_query_params: Optional[Dict[str, str]] = None,
+        ):
+            if components is None:
+                components = dict()
+
+            if "_main_menu" not in components:
+                components["_main_menu"] = (
+                    CMenu,
+                    CMenu.Config(menu=main_menu, template="common/main_menu.html"),
+                )
+            super().__init__(
+                template=template,
+                components=components,
+                inject_into_components=inject_into_components,
+                redisplay=redisplay,
+                changes_url=changes_url,
+                url_query_params=url_query_params,
+            )

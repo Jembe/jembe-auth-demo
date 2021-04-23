@@ -81,7 +81,8 @@ class CCreate(OnConfirmationMixin, Component):
         if self.state.form.validate():
             try:
                 record = self.get_new_record()
-                self.state.form.populate_obj(record)
+                self.state.form.submit(self._config.db.session, record)
+                # self.state.form.populate_obj(record)
                 self._config.db.session.add(record)
                 self._config.db.session.commit()
                 self.emit("save", record=record, record_id=record.id)

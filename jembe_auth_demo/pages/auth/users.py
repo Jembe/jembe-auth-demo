@@ -1,7 +1,6 @@
-from jembe.component_config import listener
-from jembe_auth_demo.common.forms import JembeForm
 from typing import TYPE_CHECKING
-from jembe import config
+from jembe_auth_demo.common.forms import JembeForm
+from jembe import config, listener
 from jembe_auth_demo.db import db
 from jembe_auth_demo.pages.common import (
     CCrudTable,
@@ -25,6 +24,8 @@ import sqlalchemy as sa
 
 if TYPE_CHECKING:
     from jembe import Component
+    from flask_sqlalchemy import Model
+    from sqlalchemy.orm.session import Session
 
 __all__ = ("CUsers",)
 
@@ -49,12 +50,6 @@ class UserForm(JembeForm):
             validators.Length(max=User.email.type.length),
         ]
     )
-    password = PasswordField(
-        validators=[
-            validators.DataRequired(),
-            validators.Length(max=User.password.type.length),
-        ]
-    )
     active = BooleanField(default=True)
     groups_ids = SelectMultipleField(coerce=int)
 
@@ -74,6 +69,34 @@ class UserForm(JembeForm):
         return super().mount(component)
 
 
+class CreateUserForm(UserForm):
+    password = PasswordField(
+        validators=[
+            validators.DataRequired(),
+            validators.Length(
+                min=7, max=User.password.type.length, message="Select stronger password"
+            ),
+        ]
+    )
+    confirm_password = PasswordField(
+        validators=[validators.EqualTo("password", message="Passwords must match")]
+    )
+    def submit(self, session: "Session", record: "User", **kwargs):
+        super().submit(session, record, **kwargs)
+        record.set_password(self.password.data)
+
+
+class UpdateUserForm(UserForm):
+    new_password = PasswordField()
+    confirm_password = PasswordField(
+        validators=[validators.EqualTo("new_password", message="Passwords must match")]
+    )
+    def submit(self, session: "Session", record: "User", **kwargs):
+        super().submit(session, record, **kwargs)
+        if self.new_password.data != "":
+            record.set_password(self.new_password.data)
+
+
 @config(
     CCrudTable.Config(
         db=db,
@@ -87,7 +110,9 @@ class UserForm(JembeForm):
         components=dict(
             create=(
                 CCreate,
-                CCreate.Config(db=db, model=User, form=UserForm, title="Add User"),
+                CCreate.Config(
+                    db=db, model=User, form=CreateUserForm, title="Add User"
+                ),
             ),
             read=(
                 CRead,
@@ -114,7 +139,7 @@ class UserForm(JembeForm):
                     else dict(),
                 ),
             ),
-            update=(CUpdate, CUpdate.Config(db=db, model=User, form=UserForm)),
+            update=(CUpdate, CUpdate.Config(db=db, model=User, form=UpdateUserForm)),
             delete=(CDelete, CDelete.Config(db=db, model=User)),
         ),
         top_menu=[ActionLink("create", "Add")],
@@ -141,6 +166,6 @@ class UserForm(JembeForm):
     )
 )
 class CUsers(CCrudTable):
-    @listener(event="delete", source="./read/delete")
+    @listener(event="delete", source="read/delete")
     def on_delete(self, event):
         self.state.display_mode = None

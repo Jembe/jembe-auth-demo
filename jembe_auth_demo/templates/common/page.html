@@ -1,34 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {{component("_title")}}
-    <meta name="description" content="Jembe Auth Demo">
-    <link rel="stylesheet" href="{{url_for('static', filename='css/main.css')}}">
-</head>
-<body>
-    <div class="min-h-screen bg-gray-100">
-        {{component("_main_menu")}}
-        <div class="py-10">
-            {% if display_mode is not none %}
-            {{component(display_mode)}}
-            {% endif %}
-        </div>
+{% extends _config.super.default_template %}
+{% block page_content %}
+    {{component("_main_menu")}}
+    <div class="py-10">
+        {% if display_mode is not none %}
+        {{component(display_mode)}}
+        {% endif %}
     </div>
-
-
-    {{component("_confirmation")}}
-    {{component("_notifications")}}
-    {{component("_syserror")}}
-    {{component("_progress_indicator")}}
-    <script src="{{ url_for('jembe.static', filename='js/jembe.js') }}" defer></script>
-    <script defer>
-    window.addEventListener('DOMContentLoaded', function(event){
-        window.jembeClient.addXRequestHeaderGenerator(function () {
-            return {'X-CSRFToken': window.jembeClient.getCookie("_csrf_token")};
-        })
-    })
-    </script>
-</body>
-</html>
+{% endblock page_content %}

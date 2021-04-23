@@ -142,6 +142,6 @@ class CDeleteGroup(CDelete):
     )
 )
 class CGroups(CCrudTable):
-    @listener(event="delete", source="./read/delete")
+    @listener(event="delete", source="read/delete")
     def on_delete(self, event:"Event"):
         self.state.display_mode = None

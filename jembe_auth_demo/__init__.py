@@ -21,8 +21,8 @@ def create_app(config=None):
     except OSError:
         pass
 
-    jmb.init_jembe(app)
     db.init_db(app)
+    jmb.init_jembe(app)
     views.init_views(app)
     commands.init_commands(app)
 

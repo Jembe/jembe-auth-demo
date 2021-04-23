@@ -37,7 +37,7 @@ class PageTitle(Component):
             self.state.title = self._config.title
         super().__init__()
 
-    @listener(event="set_page_title")
+    @listener(event="setPageTitle")
     def on_set_page_title(self, event: "Event"):
         if "title" in event.params and event.params["title"]:
             self.state.title = event.params["title"]
