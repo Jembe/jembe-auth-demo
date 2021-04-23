@@ -93,7 +93,7 @@ class UpdateUserForm(UserForm):
     )
     def submit(self, session: "Session", record: "User", **kwargs):
         super().submit(session, record, **kwargs)
-        if self.new_password.data != "":
+        if self.new_password.data:
             record.set_password(self.new_password.data)
 
 

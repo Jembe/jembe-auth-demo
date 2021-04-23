@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING, Optional, Union
 from wtforms import StringField, PasswordField, validators as val
 from flask_login import login_user
-from jembe import Component, action, run_only_once
+from jembe import Component, action
 from jembe_auth_demo.common import JembeForm
 from jembe_auth_demo.pages.common import Notification
 from jembe_auth_demo.db import db
