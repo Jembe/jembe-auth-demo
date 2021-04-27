@@ -1,6 +1,6 @@
-from typing import TYPE_CHECKING, Dict, Any
+from typing import TYPE_CHECKING
 from jembe import config
-from jembe.component_config import listener
+from jembe.component_config import action, listener
 from jembe_auth_demo.models import Group, User
 from jembe_auth_demo.db import db
 from jembe_auth_demo.pages.common import (
@@ -10,6 +10,7 @@ from jembe_auth_demo.pages.common import (
     CRead,
     CUpdate,
     CDelete,
+    action_delete_record,
     ActionLink,
 )
 import sqlalchemy as sa
@@ -17,7 +18,7 @@ from wtforms import StringField, TextAreaField, validators, SelectMultipleField
 from jembe_auth_demo.common import JembeForm
 
 if TYPE_CHECKING:
-    from jembe import Component, Event, ComponentConfig
+    from jembe import Component, Event
 
 
 __all__ = ("CGroups",)
@@ -72,21 +73,27 @@ class CCreateGroup(CCreate):
                 ),
                 "Edit",
             ),
-            ActionLink("delete", "Delete"),
+            ActionLink(
+                lambda self: self.component().call("delete_record"),  # type:ignore
+                "Delete",
+            ),
         ],
-        components=dict(delete=(CDelete, CDelete.Config(db=db, model=Group))),
-        # inject_into_components=lambda self, cconfig: dict(
-        #     id=self.record.id, _record=self.record
-        # )
-        # if cconfig.name == "delete"
-        # else dict(),  # type:ignore
     )
 )
 class CReadGroup(CRead):
-    def inject_into(self, cconfig: "ComponentConfig") -> Dict[str, Any]:
-        if cconfig.name == "delete":
-            return dict(id=self.record.id, _record=self.record)
-        return super().inject_into(cconfig)
+    @action
+    def delete_record(self, confirmed: bool = False):
+        action_delete_record(
+            component=self,
+            action_name="delete_record",
+            action_params=dict(confirmed=True),
+            confirmed=confirmed,
+            db=self._config.db,
+            model=Group,
+            id=self.record.id,
+            record=self.record,
+        )
+        return False
 
 
 @config(
@@ -129,7 +136,7 @@ class CDeleteGroup(CDelete):
         record_menu=[
             ActionLink(lambda self, record: self.component("read", id=record.id, _record=record), "View"),  # type: ignore
             ActionLink(lambda self, record: self.component("update", id=record.id, _record=record), "Edit"),  # type: ignore
-            ActionLink(lambda self, record: self.component("delete", id=record.id, _record=record), "Delete"),  # type: ignore
+            ActionLink(lambda self, record: self.component().call("delete_record", id=record.id), "Delete"),  # type: ignore
         ],
         # field_links = {}
         # bulk_menu =[]
@@ -137,11 +144,23 @@ class CDeleteGroup(CDelete):
             create=CCreateGroup,
             read=CReadGroup,
             update=CUpdateGroup,
-            delete=CDeleteGroup,
+            # delete=CDeleteGroup,
         ),
     )
 )
 class CGroups(CCrudTable):
-    @listener(event="delete", source="read/delete")
-    def on_delete(self, event:"Event"):
+    @action
+    def delete_record(self, id: int, confirmed: bool = False):
+        return action_delete_record(
+            component=self,
+            action_name="delete_record",
+            action_params=dict(id=id, confirmed=True),
+            confirmed=confirmed,
+            db=self._config.db,
+            model=Group,
+            id=id,
+        )
+
+    @listener(event="delete", source="read")
+    def on_delete(self, event: "Event"):
         self.state.display_mode = None

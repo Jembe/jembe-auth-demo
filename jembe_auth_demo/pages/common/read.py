@@ -1,20 +1,30 @@
-from typing import Any, List, TYPE_CHECKING, Callable, Dict, Iterable, Optional, Tuple, Union
+from typing import (
+    Any,
+    List,
+    TYPE_CHECKING,
+    Callable,
+    Dict,
+    Iterable,
+    Optional,
+    Tuple,
+    Union,
+)
 
 from jembe_auth_demo.common import JembeForm
 from .link import Link
 from .menu import Menu
+from .confirmation import OnConfirmationMixin
 from jembe import Component
 
 if TYPE_CHECKING:
-    from jembe import ComponentRef, RedisplayFlag, ComponentConfig
+    from jembe import ComponentRef, RedisplayFlag, ComponentConfig, DisplayResponse
     from flask_sqlalchemy import Model, SQLAlchemy
-    from flask import Response
 
 
 __all__ = ("CRead",)
 
 
-class CRead(Component):
+class CRead(OnConfirmationMixin,Component):
     class Config(Component.Config):
         def __init__(
             self,
@@ -40,7 +50,7 @@ class CRead(Component):
             self.default_template = "common/read.html"
             if template is None:
                 template = ("", self.default_template)
-            
+
             self.top_menu: "Menu" = (
                 Menu()
                 if top_menu is None
@@ -59,9 +69,7 @@ class CRead(Component):
     _config: Config
 
     def __init__(self, id: int, _record: Optional["Model"] = None) -> None:
-        self._record = (
-            _record if _record is not None and _record.id == id else None
-        )
+        self._record = _record if _record is not None and _record.id == id else None
         super().__init__()
 
     @property
@@ -78,7 +86,7 @@ class CRead(Component):
             return self._config.title
         return self._config.title(self)
 
-    def display(self) -> Union[str, "Response"]:
+    def display(self) -> "DisplayResponse":
         self.form = self._config.form(obj=self.record, readonly=True).mount(self)
         self.model_info = getattr(self._config.model, "__table_args__", dict()).get(
             "info", dict()

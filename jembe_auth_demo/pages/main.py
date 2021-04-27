@@ -1,4 +1,4 @@
-from typing import  TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from jembe import listener
 from jembe.processor import EmitCommand
@@ -45,44 +45,11 @@ class MainPage(Page):
 
 @jmb.page("auth", PageBase.Config(components=dict(login=CLogin)))
 class LoginPage(PageBase):
-    # def __init__(self, display_mode: Optional[str] = None):
-    #     super().__init__(display_mode=display_mode)
-    #     if current_user.is_authenticated:
-    #         # # print(current_user)
-    #         # TODO add remove component from processing with self.remove() or self.remove(relative_exec_name)
-    #         self.component("/main")()
-    #         self.remove()
+    def __init__(self, display_mode: Optional[str] = None):
+        super().__init__(display_mode=display_mode)
+        if current_user.is_authenticated:
+            self.redirect_to(self.component("/main"))
 
     @listener(event="login", source="*")
     def on_login(self, event: "Event"):
-        self.component("/main")()
-        self.remove()
-        return False
-
-    def remove(self):
-        processor = get_processor()
-        processor._commands = [
-            c
-            for c in processor._commands
-            if not c.component_exec_name.startswith(self.exec_name)
-            or isinstance(c, EmitCommand)
-        ]
-        processor.renderers = {
-            k: r
-            for k, r in processor.renderers.items()
-            if not k.startswith(self.exec_name)
-        }
-        processor.components = {
-            k: c
-            for k, c in processor.components.items()
-            if not k.startswith(self.exec_name)
-        }
-
-    # def display(self):
-    #     if current_user.is_authenticated:
-    #         # # print(current_user)
-    #         self.component("/main")()
-    #         return ""
-    #         # return None
-    #         # return redirect("/")
-    #     return super().display()
+        self.redirect_to(self.component("/main"))

@@ -1,4 +1,3 @@
-from jembe_auth_demo.pages.common.delete import CDelete
 from typing import TYPE_CHECKING, Optional, Union, Iterable, Dict, Callable, Tuple, List
 from math import ceil
 import sqlalchemy as sa
@@ -8,13 +7,13 @@ from jembe_auth_demo.pages.common import Link, Menu
 from .create import CCreate
 from .read import CRead
 from .update import CUpdate
+from .confirmation import OnConfirmationMixin
+from .delete import CDelete
 
 if TYPE_CHECKING:
-    from jembe import Event
-    from flask import Response
     from flask_sqlalchemy import SQLAlchemy
     from sqlalchemy.sql.elements import ColumnElement
-    from jembe import ComponentConfig, ComponentRef, RedisplayFlag
+    from jembe import Event, ComponentConfig, ComponentRef, RedisplayFlag, DisplayResponse
 
 __all__ = ("CTable", "CCrudTable", "TableColumn")
 
@@ -59,7 +58,7 @@ class TableColumn:
         return value if value is not None else ""
 
 
-class CTable(Component):
+class CTable(OnConfirmationMixin,Component):
     class Config(Component.Config):
         def __init__(
             self,
@@ -142,7 +141,7 @@ class CTable(Component):
     # advance filters
     # select them
     # execute action on them
-    def display(self) -> Union[str, "Response"]:
+    def display(self) -> "DisplayResponse":
         query = self._config.query.with_session(self._config.db.session())
         # order
         if self.state.order_by != 0:
@@ -288,7 +287,7 @@ class CCrudTable(CTable):
             else:
                 self.state.display_mode = None
 
-    def display(self) -> Union[str, "Response"]:
+    def display(self) -> "DisplayResponse":
         if self.state.display_mode not in self._config.crud_display_modes:
             self.goto_id = None
             self.goto_record = None

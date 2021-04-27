@@ -8,9 +8,8 @@ from jembe import Component, action, run_only_once
 import sqlalchemy as sa
 
 if TYPE_CHECKING:
-    from jembe import ComponentRef, RedisplayFlag, ComponentConfig
+    from jembe import ComponentRef, RedisplayFlag, ComponentConfig, DisplayResponse
     from flask_sqlalchemy import Model, SQLAlchemy
-    from flask import Response
 
 __all__ = ("CUpdate",)
 
@@ -139,7 +138,7 @@ class CUpdate(OnConfirmationMixin, Component):
             self.emit("cancel", record_id=self.record.id, record=self.record)
             return False
 
-    def display(self) -> Union[str, "Response"]:
+    def display(self) -> "DisplayResponse":
         self.mount()
         self.model_info = getattr(self._config.model, "__table_args__", dict()).get(
             "info", dict()

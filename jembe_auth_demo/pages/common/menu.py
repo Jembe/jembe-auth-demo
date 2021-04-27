@@ -20,6 +20,7 @@ if TYPE_CHECKING:
         ComponentConfig,
         ComponentRef,
         RedisplayFlag,
+        DisplayResponse
     )
     from flask import Response
     from jembe_auth_demo.pages.common import Link
@@ -87,7 +88,7 @@ class CMenu(Component):
                 url_query_params=url_query_params,
             )
 
-    def display(self) -> Union[str, "Response"]:
+    def display(self) -> "DisplayResponse":
         self.menu = self._config.menu.bind_to(self)
         self.is_menu = lambda menu_item: isinstance(menu_item, Menu)
         return super().display()

@@ -1,8 +1,6 @@
-from typing import TYPE_CHECKING, Any, Optional, Dict
+from typing import TYPE_CHECKING, Any, Optional
 from jembe import Component, config, listener, action, JembeInitParamSupport
 from dataclasses import dataclass, field, asdict
-
-from jembe.component import component
 
 if TYPE_CHECKING:
     from jembe import Event
@@ -16,8 +14,6 @@ class Confirmation(JembeInitParamSupport):
     question: str
     action: str
     params: dict = field(default_factory=dict)
-    state: dict = field(default_factory=dict)
-    force_init: bool = False
 
     @classmethod
     def dump_init_param(cls, value: "Confirmation") -> Any:
@@ -31,8 +27,6 @@ class Confirmation(JembeInitParamSupport):
                 question=value.get("question"),
                 action=value.get("action"),
                 params=value.get("params"),
-                state=value.get("state"),
-                force_init=value.get("force_init"),
             )
             if value is not None
             else None
@@ -56,10 +50,6 @@ class CConfirmationDialog(Component):
     @action
     def choose(self, choice: str):
         if choice == "ok":
-            if self.state.confirmation.force_init:  # type:ignore
-                self.component(
-                    self.state.source, **self.state.confirmation.state
-                ).force_init()
             self.emit(
                 "confirmation",
                 choice=choice,

@@ -6,11 +6,10 @@ from jembe import Component, action
 import sqlalchemy as sa
 
 if TYPE_CHECKING:
-    from jembe import ComponentRef, RedisplayFlag, ComponentConfig
+    from jembe import ComponentRef, RedisplayFlag, ComponentConfig, DisplayResponse
     from flask_sqlalchemy import Model, SQLAlchemy
-    from flask import Response
 
-__all__ = ("CDelete",)
+__all__ = ("CDelete", "action_delete_record")
 
 
 class CDelete(OnConfirmationMixin, Component):
@@ -58,9 +57,7 @@ class CDelete(OnConfirmationMixin, Component):
 
     @action
     def delete_record(self, confirmed=False):
-        if not confirmed:
-            self.request_confirmation()
-        else:
+        if confirmed:
             try:
                 self._config.db.session.delete(self.record)
                 self._config.db.session.commit()
@@ -79,8 +76,9 @@ class CDelete(OnConfirmationMixin, Component):
                 )
         return False
 
-    def display(self) -> Union[str, "Response"]:
+    def display(self) -> "DisplayResponse":
         self.request_confirmation()
+        # return True # ghost component does not have display and does not require parent redisplaying
         return self.render_template_string("")
 
     def request_confirmation(self):
@@ -91,8 +89,6 @@ class CDelete(OnConfirmationMixin, Component):
                 question="Are you sure you want to delete this record?",
                 action="delete_record",
                 params=dict(confirmed=True),
-                state=dict(id=self.state.id),
-                force_init=True,
             ),
         )
 
@@ -101,3 +97,57 @@ class CDelete(OnConfirmationMixin, Component):
         if isinstance(self._config.title, str):
             return self._config.title
         return self._config.title(self)
+
+
+def action_delete_record(
+    component: "Component",
+    action_name: str,
+    action_params: dict,
+    id: int,
+    db: "SQLAlchemy",
+    model: "Model",
+    confirmed: bool,
+    record: Optional["Model"] = None,
+    title: Optional[Union[str, Callable[["Component", "Model"], str]]] = None,
+) -> bool:
+    # TODO should return if it is deleted to simplyfy decision about rerendering
+    _record: "Model" = (
+        record
+        if record is not None and record.id == id
+        else db.session.query(model).get(id)
+    )
+    if confirmed:
+        # do delete
+        try:
+            db.session.delete(_record)
+            db.session.commit()
+            component.emit("delete", id=_record.id, record=_record)
+            component.emit(
+                "pushNotification",
+                notification=Notification("{} deleted.".format(str(_record))),
+            )
+        except sa.exc.SQLAlchemyError as error:
+            db.session.rollback()
+            component.emit(
+                "pushNotification",
+                notification=Notification(str(getattr(error, "orig", error)), "error"),
+            )
+        return True
+    # request confirmation
+    _title: str = (
+        "Delete '{}'?".format(_record)
+        if title is None
+        else title
+        if isinstance(title, str)
+        else title(component, record)
+    )
+    component.emit(
+        "requestConfirmation",
+        confirmation=Confirmation(
+            title=_title,
+            question="Are you sure you want to delete this record?",
+            action=action_name,
+            params=action_params,
+        ),
+    )
+    return False

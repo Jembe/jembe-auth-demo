@@ -10,6 +10,7 @@ import sqlalchemy as sa
 from markupsafe import Markup
 
 if TYPE_CHECKING:
+    from jembe import DisplayResponse
     from flask import Response
 
 __all__ = ("CLogin", "CResetPassword")
@@ -86,7 +87,7 @@ class CLogin(Component):
             )
         return True
 
-    def display(self) -> Union[str, "Response"]:
+    def display(self) -> "DisplayResponse":
         self.mount()
         self.emit("setPageTitle", title="Login")
         return super().display()
