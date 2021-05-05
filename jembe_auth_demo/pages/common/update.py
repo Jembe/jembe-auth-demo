@@ -1,26 +1,26 @@
-from typing import Any, TYPE_CHECKING, Callable, Dict, Iterable, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Callable, Dict, Iterable, Optional, Tuple, Type, Union
 
 from jembe_auth_demo.common import JembeForm
-from jembe_auth_demo.db.exceptions import DBError
-from .confirmation import OnConfirmationMixin, Confirmation
-from .notifications import Notification
-from jembe import Component, action, run_only_once
-import sqlalchemy as sa
+from .form import CForm
+from jembe import Component, action
 
 if TYPE_CHECKING:
-    from jembe import ComponentRef, RedisplayFlag, ComponentConfig, DisplayResponse
+    from jembe import ComponentRef, RedisplayFlag, ComponentConfig
     from flask_sqlalchemy import Model, SQLAlchemy
 
 __all__ = ("CUpdate",)
 
 
-class CUpdate(OnConfirmationMixin, Component):
-    class Config(Component.Config):
+class CUpdate(CForm):
+    class Config(CForm.Config):
+        default_template = "common/update.html"
+        default_title = "Edit"
+
         def __init__(
             self,
             db: "SQLAlchemy",
-            model: "Model",
             form: "JembeForm",
+            model: Type["Model"],
             title: Optional[Union[str, Callable[["Component"], str]]] = None,
             template: Optional[Union[str, Iterable[str]]] = None,
             components: Optional[Dict[str, "ComponentRef"]] = None,
@@ -31,16 +31,11 @@ class CUpdate(OnConfirmationMixin, Component):
             changes_url: bool = True,
             url_query_params: Optional[Dict[str, str]] = None,
         ):
-            self.db = db
             self.model = model
-            self.form = form
-            self.title = title if title else "Update"
-
-            self.default_template = "common/update.html"
-            if template is None:
-                template = ("", self.default_template)
-
             super().__init__(
+                db,
+                form,
+                title=title,
                 template=template,
                 components=components,
                 inject_into_components=inject_into_components,
@@ -59,88 +54,30 @@ class CUpdate(OnConfirmationMixin, Component):
         _record: Optional["Model"] = None,
     ) -> None:
         self._record = _record if _record is not None and _record.id == id else None
-        super().__init__()
+        super().__init__(form=form)
 
-    @property
-    def record(self):
+    def get_record(self) -> Optional[Union["Model", dict]]:
         if self._record is None:
-            self._record = self._config.db.session.query(self._config.model).get(
-                self.state.id
-            )
+            self._record = self.session.query(self._config.model).get(self.state.id)
         return self._record
-
-    @property
-    def title(self) -> str:
-        if isinstance(self._config.title, str):
-            return self._config.title
-        return self._config.title(self)
-
-    @classmethod
-    def load_init_param(cls, config: "ComponentConfig", name: str, value: Any) -> Any:
-        if name == "form":
-            # otherwise it will use JembeForm.load_init_param
-            return config.form.load_init_param(value)
-        return super().load_init_param(config, name, value)
-
-    def get_new_record(self) -> "Model":
-        return self._config.model()
-
-    @run_only_once
-    def mount(self):
-        if self.state.form is None:
-            self.state.form = self._config.form(obj=self.record)
-
-        if isinstance(self.state.form, JembeForm):
-            self.state.form.mount(self)
 
     @action
     def save(self) -> Optional[bool]:
-        self.mount()
-        if self.state.form.validate():
-            try:
-                self.state.form.submit(self._config.db.session, self.record)
-                # self.state.form.populate_obj(self.record)
-                self._config.db.session.commit()
-                self.emit("save", record=self.record, record_id=self.record.id)
-                self.emit(
-                    "pushNotification",
-                    notification=Notification("{} saved".format(str(self.record))),
-                )
-                # don't execute display
-                return False
-
-            except (sa.exc.SQLAlchemyError, DBError) as error:
-                self.emit(
-                    "pushNotification",
-                    notification=Notification(
-                        str(getattr(error, "orig", error))
-                        if isinstance(error, sa.exc.SQLAlchemyError)
-                        else str(error),
-                        "error",
-                    ),
-                )
-        self._config.db.session.rollback()
+        if self.submit_form(
+            "save",
+            lambda c: dict(record=c.submited_record, record_id=c.submited_record.id),
+            lambda c: "{} saved".format(str(c.submited_record)),
+        ):
+            # don't redisplay component
+            return False
         return True
 
     @action
     def cancel(self, confirmed=False):
         if self.state.is_modified and not confirmed:
-            self.emit(
-                "requestConfirmation",
-                confirmation=Confirmation(
-                    title="Cancel Update",
-                    question="Are you sure, all changes will be lost?",
-                    action="cancel",
-                    params=dict(confirmed=True),
-                ),
+            self.request_confirmation(
+                "cancel", "Cancel Update", "Are you sure, all changes will be lost?"
             )
         else:
             self.emit("cancel", record_id=self.record.id, record=self.record)
             return False
-
-    def display(self) -> "DisplayResponse":
-        self.mount()
-        self.model_info = getattr(self._config.model, "__table_args__", dict()).get(
-            "info", dict()
-        )
-        return super().display()

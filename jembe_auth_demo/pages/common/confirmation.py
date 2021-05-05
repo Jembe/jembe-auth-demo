@@ -65,3 +65,17 @@ class OnConfirmationMixin:
     def on_confirmation(self, event: "Event"):
         if hasattr(self, event.action):
             return getattr(self, event.action)(**event.action_params)
+
+    def request_confirmation(self, action:str, title:str, question:str,action_params:Optional[dict]=None):
+        if action_params is None:
+            action_params = dict(confirmed=True)
+
+        self.emit(
+            "requestConfirmation",
+            confirmation=Confirmation(
+                title=title,
+                question=question,
+                action=action,
+                params=action_params,
+            ),
+        )

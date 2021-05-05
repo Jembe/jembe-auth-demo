@@ -1,27 +1,35 @@
-from typing import Any, TYPE_CHECKING, Callable, Dict, Iterable, Optional, Tuple, Union
+from typing import (
+    TYPE_CHECKING,
+    Callable,
+    Dict,
+    Iterable,
+    Optional,
+    Tuple,
+    Type,
+    Union,
+)
 
 from jembe_auth_demo.common import JembeForm
-from jembe_auth_demo.db.exceptions import DBError
-from .confirmation import OnConfirmationMixin, Confirmation
-from .notifications import Notification
-from jembe import Component, action, run_only_once
-import sqlalchemy as sa
+from .form import CForm
+from jembe import Component, action
 
 if TYPE_CHECKING:
-    from jembe import ComponentRef, RedisplayFlag, ComponentConfig, DisplayResponse
+    from jembe import ComponentRef, RedisplayFlag, ComponentConfig
     from flask_sqlalchemy import Model, SQLAlchemy
-    from flask import Response
 
 __all__ = ("CCreate",)
 
 
-class CCreate(OnConfirmationMixin, Component):
-    class Config(Component.Config):
+class CCreate(CForm):
+    class Config(CForm.Config):
+        default_template = "common/create.html"
+        default_title = "Create"
+
         def __init__(
             self,
             db: "SQLAlchemy",
-            model: "Model",
             form: "JembeForm",
+            model: Type["Model"],
             title: Optional[Union[str, Callable[["Component"], str]]] = None,
             template: Optional[Union[str, Iterable[str]]] = None,
             components: Optional[Dict[str, "ComponentRef"]] = None,
@@ -32,16 +40,11 @@ class CCreate(OnConfirmationMixin, Component):
             changes_url: bool = True,
             url_query_params: Optional[Dict[str, str]] = None,
         ):
-            self.db = db
             self.model = model
-            self.form = form
-            self.title = title if title else "Create"
-
-            self.default_template = "common/create.html"
-            if template is None:
-                template = ("", self.default_template)
 
             super().__init__(
+                db=db,
+                form=form,
                 template=template,
                 components=components,
                 inject_into_components=inject_into_components,
@@ -55,82 +58,28 @@ class CCreate(OnConfirmationMixin, Component):
     def __init__(
         self, form: Optional[JembeForm] = None, is_modified: bool = False
     ) -> None:
-        super().__init__()
+        super().__init__(form=form)
 
-    @classmethod
-    def load_init_param(cls, config: "ComponentConfig", name: str, value: Any) -> Any:
-        if name == "form":
-            # otherwise it will use JembeForm.load_init_param
-            return config.form.load_init_param(value)
-        return super().load_init_param(config, name, value)
-
-    def get_new_record(self) -> "Model":
+    def get_record(self) -> Optional[Union["Model", dict]]:
         return self._config.model()
-
-    @run_only_once
-    def mount(self):
-        if self.state.form is None:
-            self.state.form = self._config.form(obj=self.get_new_record())
-
-        if isinstance(self.state.form, JembeForm):
-            self.state.form.mount(self)
 
     @action
     def save(self) -> Optional[bool]:
-        self.mount()
-        if self.state.form.validate():
-            try:
-                record = self.get_new_record()
-                self.state.form.submit(self._config.db.session, record)
-                # self.state.form.populate_obj(record)
-                self._config.db.session.add(record)
-                self._config.db.session.commit()
-                self.emit("save", record=record, record_id=record.id)
-                self.emit(
-                    "pushNotification",
-                    notification=Notification("{} saved".format(str(record))),
-                )
-                # don't execute display
-                return False
-
-            except (sa.exc.SQLAlchemyError, DBError) as error:
-                self.emit(
-                    "pushNotification",
-                    notification=Notification(
-                        str(getattr(error, "orig", error))
-                        if isinstance(error, sa.exc.SQLAlchemyError)
-                        else str(error),
-                        "error",
-                    ),
-                )
-        self._config.db.session.rollback()
+        if self.submit_form(
+            "save",
+            lambda c: dict(record=c.submited_record, record_id=c.submited_record.id),
+            lambda c: "{} saved".format(str(c.submited_record)),
+        ):
+            # don't redisplay
+            return False
         return True
 
     @action
     def cancel(self, confirmed=False):
         if self.state.is_modified and not confirmed:
-            self.emit(
-                "requestConfirmation",
-                confirmation=Confirmation(
-                    title="Cancel Add",
-                    question="Are you sure, all changes will be lost?",
-                    action="cancel",
-                    params=dict(confirmed=True),
-                ),
+            self.request_confirmation(
+                "cancel", "Cancel Add", "Are you sure, all changes will be lost?"
             )
         else:
             self.emit("cancel", record_id=None, record=None)
             return False
-
-    def display(self) -> "DisplayResponse":
-        self.mount()
-        self.model_info = getattr(self._config.model, "__table_args__", dict()).get(
-            "info", dict()
-        )
-        return super().display()
-
-    @property
-    def title(self) -> str:
-        if isinstance(self._config.title, str):
-            return self._config.title
-        return self._config.title(self)

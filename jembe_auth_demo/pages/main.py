@@ -1,13 +1,11 @@
 from typing import TYPE_CHECKING, Optional
 
 from jembe import listener
-from jembe.processor import EmitCommand
 from jembe_auth_demo.jmb import jmb
 from .common import Page, ActionLink, PageBase
 from .dashboard import Dashboard
 from .auth import CGroups, CUsers, CLogin
 from flask_login import current_user
-from jembe.app import get_processor
 
 if TYPE_CHECKING:
     from jembe import Event

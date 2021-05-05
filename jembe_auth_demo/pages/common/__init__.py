@@ -2,6 +2,7 @@ from .link import *
 from .page import *
 from .menu import *
 from .table import *
+from .form import *
 from .create import *
 from .read import *
 from .update import *

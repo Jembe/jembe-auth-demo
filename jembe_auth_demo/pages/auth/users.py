@@ -1,4 +1,5 @@
-from typing import TYPE_CHECKING
+from jembe_auth_demo.pages.common.read import CReadWithDelete
+from typing import Optional, TYPE_CHECKING
 from jembe_auth_demo.common.forms import JembeForm
 from jembe import config, listener
 from jembe_auth_demo.db import db
@@ -24,8 +25,8 @@ import sqlalchemy as sa
 
 if TYPE_CHECKING:
     from jembe import Component
+    from jembe_auth_demo.pages.common import CForm
     from flask_sqlalchemy import Model
-    from sqlalchemy.orm.session import Session
 
 __all__ = ("CUsers",)
 
@@ -43,6 +44,7 @@ class UserForm(JembeForm):
             validators.Length(max=User.last_name.type.length),
         ]
     )
+
     email = EmailField(
         validators=[
             validators.DataRequired(),
@@ -81,9 +83,14 @@ class CreateUserForm(UserForm):
     confirm_password = PasswordField(
         validators=[validators.EqualTo("password", message="Passwords must match")]
     )
-    def submit(self, session: "Session", record: "User", **kwargs):
-        super().submit(session, record, **kwargs)
-        record.set_password(self.password.data)
+
+    def submit(
+        self, cform: "CForm", record: Optional["Model"] = None
+    ) -> Optional["Model"]:
+        user: Optional[User] = super().submit(cform=cform, record=record)
+        if user is not None:
+            user.set_password(self.password.data)
+        return user
 
 
 class UpdateUserForm(UserForm):
@@ -91,10 +98,14 @@ class UpdateUserForm(UserForm):
     confirm_password = PasswordField(
         validators=[validators.EqualTo("new_password", message="Passwords must match")]
     )
-    def submit(self, session: "Session", record: "User", **kwargs):
-        super().submit(session, record, **kwargs)
-        if self.new_password.data:
-            record.set_password(self.new_password.data)
+
+    def submit(
+        self, cform: "CForm", record: Optional["Model"] = None
+    ) -> Optional["Model"]:
+        user: Optional[User] = super().submit(cform, record=record)
+        if user is not None and self.new_password.data:
+            user.set_password(self.new_password.data)
+        return user
 
 
 @config(
@@ -115,8 +126,8 @@ class UpdateUserForm(UserForm):
                 ),
             ),
             read=(
-                CRead,
-                CRead.Config(
+                CReadWithDelete,
+                CReadWithDelete.Config(
                     db=db,
                     model=User,
                     form=UserForm,
@@ -129,14 +140,13 @@ class UpdateUserForm(UserForm):
                             ),
                             "Edit",
                         ),
-                        ActionLink("delete", "Delete"),
+                        ActionLink(
+                            lambda self: self.component().call(  # type:ignore
+                                "delete_record"
+                            ),
+                            "Delete",
+                        ),
                     ],
-                    components={"delete": (CDelete, CDelete.Config(db=db, model=User))},
-                    inject_into_components=lambda self, cconfig: dict(
-                        id=self.record.id, _record=self.record
-                    )
-                    if cconfig.name in ("delete",)
-                    else dict(),
                 ),
             ),
             update=(CUpdate, CUpdate.Config(db=db, model=User, form=UpdateUserForm)),
@@ -166,6 +176,6 @@ class UpdateUserForm(UserForm):
     )
 )
 class CUsers(CCrudTable):
-    @listener(event="delete", source="read/delete")
+    @listener(event="delete", source="read")
     def on_delete(self, event):
         self.state.display_mode = None

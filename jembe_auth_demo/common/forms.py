@@ -1,10 +1,11 @@
 from abc import ABCMeta
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Optional
 from jembe import JembeInitParamSupport
 from wtforms.form import Form, FormMeta
 
 if TYPE_CHECKING:
     from jembe import Component
+    from jembe_auth_demo.pages.common.form import CForm
     from wtforms import Field
     from flask_sqlalchemy import Model
     from sqlalchemy.orm.session import Session
@@ -41,11 +42,17 @@ class JembeForm(JembeInitParamSupport, Form, metaclass=JembeFormMeta):
     def load_init_param(cls, value: Any) -> Any:
         return cls(data=value)
 
-    def mount(self, component: "Component") -> "JembeForm":
+    def mount(self, cform: "CForm") -> "JembeForm":
         return self
 
-    def submit(self, session: "Session", record: "Model", **kwargs):
-        self.populate_obj(record)
+    def submit(
+        self, cform: "CForm", record: Optional["Model"] = None
+    ) -> Optional["Model"]:
+        if record is not None:
+            self.populate_obj(record)
+            cform.session.add(record)
+            return record
+        return None
 
     def setdefault(self, field: "Field", param_name: str, value: Any) -> Any:
         if field.render_kw is None:

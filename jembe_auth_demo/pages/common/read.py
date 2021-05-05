@@ -1,7 +1,7 @@
+from jembe_auth_demo.pages.common.delete import action_delete_record
 from typing import (
-    Any,
-    List,
     TYPE_CHECKING,
+    List,
     Callable,
     Dict,
     Iterable,
@@ -10,29 +10,39 @@ from typing import (
     Union,
 )
 
-from jembe_auth_demo.common import JembeForm
-from .link import Link
+from jembe.component_config import action
+
 from .menu import Menu
-from .confirmation import OnConfirmationMixin
-from jembe import Component
+from .form import CFormBase
 
 if TYPE_CHECKING:
-    from jembe import ComponentRef, RedisplayFlag, ComponentConfig, DisplayResponse
+    from jembe_auth_demo.common import JembeForm
+    from jembe import (
+        Component,
+        ComponentRef,
+        RedisplayFlag,
+        ComponentConfig,
+        DisplayResponse,
+    )
     from flask_sqlalchemy import Model, SQLAlchemy
+    from .link import Link
 
 
-__all__ = ("CRead",)
+__all__ = ("CRead", "CReadWithDelete")
 
 
-class CRead(OnConfirmationMixin,Component):
-    class Config(Component.Config):
+class CRead(CFormBase):
+    class Config(CFormBase.Config):
+        default_title = "View"
+        default_template = "common/read.html"
+
         def __init__(
             self,
             db: "SQLAlchemy",
-            model: "Model",
             form: "JembeForm",
-            title: Optional[Union[str, Callable[["Component"], str]]] = None,
+            model: "Model",
             top_menu: Optional[Union[List[Union["Link", "Menu"]], "Menu"]] = None,
+            title: Optional[Union[str, Callable[["Component"], str]]] = None,
             template: Optional[Union[str, Iterable[str]]] = None,
             components: Optional[Dict[str, "ComponentRef"]] = None,
             inject_into_components: Optional[
@@ -42,22 +52,16 @@ class CRead(OnConfirmationMixin,Component):
             changes_url: bool = True,
             url_query_params: Optional[Dict[str, str]] = None,
         ):
-            self.db = db
             self.model = model
-            self.form = form
-            self.title = title if title else "View"
-
-            self.default_template = "common/read.html"
-            if template is None:
-                template = ("", self.default_template)
-
             self.top_menu: "Menu" = (
                 Menu()
                 if top_menu is None
                 else (Menu(top_menu) if not isinstance(top_menu, Menu) else top_menu)
             )
-
             super().__init__(
+                db,
+                form,
+                title=title,
                 template=template,
                 components=components,
                 inject_into_components=inject_into_components,
@@ -80,12 +84,6 @@ class CRead(OnConfirmationMixin,Component):
             )
         return self._record
 
-    @property
-    def title(self) -> str:
-        if isinstance(self._config.title, str):
-            return self._config.title
-        return self._config.title(self)
-
     def display(self) -> "DisplayResponse":
         self.form = self._config.form(obj=self.record, readonly=True).mount(self)
         self.model_info = getattr(self._config.model, "__table_args__", dict()).get(
@@ -94,3 +92,18 @@ class CRead(OnConfirmationMixin,Component):
         # initialise menues
         self.top_menu = self._config.top_menu.bind_to(self)
         return super().display()
+
+
+class CReadWithDelete(CRead):
+    @action
+    def delete_record(self, confirmed:bool=False):
+        action_delete_record(
+            component=self,
+            action_name="delete_record",
+            action_params=dict(confirmed=True),
+            confirmed=confirmed,
+            db=self._config.db,
+            model=self._config.model,
+            id=self.record.id,
+            record=self.record
+        )
