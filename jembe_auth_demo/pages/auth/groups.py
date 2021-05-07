@@ -77,6 +77,7 @@ class CCreateGroup(CCreate):
                 lambda self: self.component().call("delete_record"),  # type:ignore
                 "Delete",
             ),
+            # ActionLink("delete()", "Delete")
         ],
     )
 )
@@ -89,7 +90,7 @@ class CReadGroup(CRead):
             action_params=dict(confirmed=True),
             confirmed=confirmed,
             db=self._config.db,
-            model=Group,
+            model=self._config.model,
             id=self.record.id,
             record=self.record,
         )

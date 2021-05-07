@@ -79,5 +79,5 @@ class CUpdate(CForm):
                 "cancel", "Cancel Update", "Are you sure, all changes will be lost?"
             )
         else:
-            self.emit("cancel", record_id=self.record.id, record=self.record)
+            self.emit("cancel", record_id=self.get_record().id, record=self.get_record())
             return False

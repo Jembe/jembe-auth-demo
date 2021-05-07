@@ -176,6 +176,12 @@ class UpdateUserForm(UserForm):
     )
 )
 class CUsers(CCrudTable):
+    # def is_accesible(self):
+    #     self.deny()
+    #     if current_user == self.state.user_id:
+    #         self.allow('display')
+    #     if self.state.owner !=fasdf:
+    #         self.deny('delete')
     @listener(event="delete", source="read")
     def on_delete(self, event):
         self.state.display_mode = None

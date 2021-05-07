@@ -70,7 +70,7 @@ class OnConfirmationMixin:
         if action_params is None:
             action_params = dict(confirmed=True)
 
-        self.emit(
+        self.emit( # type:ignore
             "requestConfirmation",
             confirmation=Confirmation(
                 title=title,
