@@ -10,7 +10,7 @@ from typing import (
     Union,
 )
 
-from jembe.component_config import action
+from jembe import action
 
 from .menu import Menu
 from .form import CFormBase
