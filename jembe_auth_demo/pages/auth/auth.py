@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from jembe import DisplayResponse
     from flask_sqlalchemy import Model
 
-__all__ = ("CLogin", "CResetPassword")
+__all__ = ("CLogin", "CLogout", "CResetPassword", "CUserProfile")
 
 
 class LoginForm(JembeForm):
@@ -40,7 +40,9 @@ class LoginForm(JembeForm):
 
 @config(CForm.Config(db=db, form=LoginForm))
 class CLogin(CForm):
-    user: Optional[User] = None
+    def init(self):
+        if current_user.is_authenticated:
+            self.ac_deny()
 
     def get_record(self) -> Optional[Union["Model", dict]]:
         return None
@@ -74,5 +76,19 @@ class CLogin(CForm):
         return super().display()
 
 
+class CLogout(Component):
+    def init(self):
+        if not current_user.is_authenticated:
+            self.ac_deny()
+
+
 class CResetPassword(Component):
-    pass
+    def init(self):
+        if not current_user.is_authenticated:
+            self.ac_deny()
+
+
+class CUserProfile(Component):
+    def init(self):
+        if not current_user.is_authenticated:
+            self.ac_deny()

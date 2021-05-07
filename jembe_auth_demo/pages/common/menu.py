@@ -1,4 +1,5 @@
 from typing import (
+    Sequence,
     TYPE_CHECKING,
     Optional,
     Union,
@@ -30,7 +31,7 @@ __all__ = ("CMenu", "Menu")
 
 @dataclass
 class Menu:
-    items: List[Union["Link", "Menu"]] = field(default_factory=list)
+    items: Sequence[Union["Link", "Menu"]] = field(default_factory=list)
     title: Optional[str] = None
     description: Optional[str] = None
     params: Dict[str, Any] = field(default_factory=dict)
@@ -60,7 +61,7 @@ class CMenu(Component):
 
         def __init__(
             self,
-            menu: Optional[Union[List[Union["Link", "Menu"]], "Menu"]] = None,
+            menu: Optional[Union[Sequence[Union["Link", "Menu"]], "Menu"]] = None,
             template: Optional[Union[str, Iterable[str]]] = None,
             components: Optional[Dict[str, "ComponentRef"]] = None,
             inject_into_components: Optional[

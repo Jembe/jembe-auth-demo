@@ -1,6 +1,16 @@
-from typing import Callable, Dict, Iterable, TYPE_CHECKING, Optional, Tuple, Union, List
+from typing import (
+    Callable,
+    Dict,
+    Iterable,
+    Sequence,
+    TYPE_CHECKING,
+    Optional,
+    Tuple,
+    Union,
+    List,
+)
 from functools import cached_property
-from jembe import Component, listener, config
+from jembe import Component, listener, AccessDenied
 from .page_title import PageTitle
 from .menu import CMenu
 from .confirmation import CConfirmationDialog
@@ -22,7 +32,7 @@ class PageBase(Component):
         def __init__(
             self,
             page_title: str = "",
-            main_menu: Optional[Union[List[Union["Link", "Menu"]], "Menu"]] = None,
+            # main_menu: Optional[Union[Sequence[Union["Link", "Menu"]], "Menu"]] = None,
             template: Optional[Union[str, Iterable[str]]] = None,
             components: Optional[Dict[str, "ComponentRef"]] = None,
             inject_into_components: Optional[
@@ -87,6 +97,17 @@ class PageBase(Component):
         if event.source_name in self._config.supported_display_modes:
             self.state.display_mode = event.source_name
 
+    @listener(event="_exception", source="*")
+    def on_child_not_accessible(self, event: "Event"):
+        if isinstance(event.exception, AccessDenied):
+            try:
+                self.state.display_mode = self._config.supported_display_modes[
+                    self._config.supported_display_modes.index(event.source_name) + 1
+                ]
+                event.handled = True
+            except (IndexError, ValueError):
+                pass
+
 
 class Page(PageBase):
     class Config(PageBase.Config):
@@ -95,7 +116,7 @@ class Page(PageBase):
         def __init__(
             self,
             page_title: str = "",
-            main_menu: Optional[Union[List[Union["Link", "Menu"]], "Menu"]] = None,
+            main_menu: Optional[Union[Sequence[Union["Link", "Menu"]], "Menu"]] = None,
             template: Optional[Union[str, Iterable[str]]] = None,
             components: Optional[Dict[str, "ComponentRef"]] = None,
             inject_into_components: Optional[
@@ -114,6 +135,7 @@ class Page(PageBase):
                     CMenu.Config(menu=main_menu, template="common/main_menu.html"),
                 )
             super().__init__(
+                page_title=page_title,
                 template=template,
                 components=components,
                 inject_into_components=inject_into_components,
