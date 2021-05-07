@@ -56,7 +56,7 @@ Make wtforms better for me:
         ✔ deny without params denyes all actions including display @done(21-05-07 14:04)
         ✔ allow('display') and deny('display') are valid @done(21-05-07 14:07)
         ✔ if 'display' is denied component is not accessible at all @done(21-05-07 14:08)
-        ☐ all actions are send to client with list of denied actions
+        ✔ all actions are send to client with list of denied actions @done(21-05-07 21:38)
         ☐ client before executing action check if action is denied and if it is call hook to handle it or call backend with denied action and excepting that backend handle it properlly
         ✘ if list of denied actions are changed component is redisplayed (efectivly making list of denied actions state variable) @cancelled(21-05-07 14:49)
             No need for this. Action can be denied in display or mount so there is no point to check it after init.

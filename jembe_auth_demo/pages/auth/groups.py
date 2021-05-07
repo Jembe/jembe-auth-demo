@@ -73,15 +73,17 @@ class CCreateGroup(CCreate):
                 ),
                 "Edit",
             ),
-            ActionLink(
-                lambda self: self.component().call("delete_record"),  # type:ignore
-                "Delete",
-            ),
-            # ActionLink("delete()", "Delete")
+            # ActionLink(
+            #     lambda self: self.component().call("delete_record"),  # type:ignore
+            #     "Delete",
+            # ),
+            ActionLink("delete_record()", "Delete")
         ],
     )
 )
 class CReadGroup(CRead):
+    # def init(self):
+    #     self.ac_deny("delete_record")
     @action
     def delete_record(self, confirmed: bool = False):
         action_delete_record(

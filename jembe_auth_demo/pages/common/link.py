@@ -46,7 +46,7 @@ class Link:
         elif isinstance(self._url, str):
             return self._url
         else:
-            return self._url(self, **self.callable_params) # type:ignore
+            return self._url(self, **self.callable_params)  # type:ignore
 
     @property
     def pathname(self) -> Optional[str]:
@@ -143,7 +143,11 @@ class ActionLink(Link):
 
         def relative_component_reference(cstr: str, comp: "Component", *args, **kwargs):
             c_names = cstr.split("/")
-            cr: "ComponentReference" = comp.component(c_names[0])
+            cr: "ComponentReference" = (
+                comp.component(c_names[0])
+                if not c_names[0].endswith("()")
+                else comp.component().call(c_names[0][:-2])
+            )
             for name in c_names[1:]:
                 cr = cr.component(name)
             return cr
