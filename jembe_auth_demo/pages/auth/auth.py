@@ -1,9 +1,10 @@
 from typing import TYPE_CHECKING, Optional, Union
+from flask_login.utils import logout_user
 from wtforms import StringField, PasswordField, validators as val
 from flask_login import login_user, current_user
 from jembe import Component, action, config
 from jembe_auth_demo.common import JembeForm
-from jembe_auth_demo.pages.common import CForm, Notification
+from jembe_auth_demo.pages.common import CForm, Notification, PComponent
 from jembe_auth_demo.db import db
 from jembe_auth_demo.models import User
 from markupsafe import Markup
@@ -76,10 +77,25 @@ class CLogin(CForm):
         return super().display()
 
 
-class CLogout(Component):
+@config(PComponent.Config(changes_url=False))
+class CLogout(PComponent):
+    def __init__(self, active:bool=False):
+        super().__init__()
+
     def init(self):
         if not current_user.is_authenticated:
             self.ac_deny()
+
+    @action
+    def logout(self):
+        logout_user()
+        self.ac_deny()
+        self.emit("logout")
+        self.state.active = False
+
+    @action
+    def cancel(self):
+        self.state.active = False
 
 
 class CResetPassword(Component):

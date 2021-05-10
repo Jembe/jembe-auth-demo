@@ -9,3 +9,4 @@ from .update import *
 from .delete import *
 from .confirmation import *
 from .notifications import Notification
+from .permanent_component import *

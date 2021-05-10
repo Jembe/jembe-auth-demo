@@ -1,0 +1,7 @@
+{% extends   _config.default_template %}
+{% block page_content %}
+    {{super()}}
+    {% if component("_logout").is_accessible %}
+    {{component("_logout")}}
+    {% endif %}
+{% endblock page_content %}

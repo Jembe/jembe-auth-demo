@@ -25,7 +25,8 @@ main_menu: List["Link"] = [
         ),
         "Groups",
     ),
-    ActionLink(lambda self: self.component("/main").call("logout"), "Logout"),
+    # ActionLink(lambda self: self.component("/main").call("logout"), "Logout"),
+    ActionLink("/main/_logout", "Logout", active=True),
     ActionLink("/main/reset_password", "Reset"),
     ActionLink("/main/user_profile", "User profile"),
     ActionLink("/main/login", "Login"),
@@ -43,33 +44,33 @@ main_menu: List["Link"] = [
             "groups": CGroups,
             "user_profile": CUserProfile,
             "login": CLogin,
+            "_logout": CLogout,
             "reset_password": CResetPassword,
         },
     ),
 )
 class MainPage(Page):
-    def __init__(self, display_mode: Optional[str] = None, user_id: Optional[int] = None):
-        if current_user.is_authenticated:
-            self.state.user_id = current_user.get_id()
-        super().__init__(display_mode=display_mode)
+    # def init(self):
+    #     if not current_user.is_authenticated:
+    #         self.ac_deny("logout")
+    #     return super().init()
 
-    def init(self):
-        if not current_user.is_authenticated:
-            self.ac_deny("logout")
-        return super().init()
+    # @action
+    # def logout(self):
+    #     logout_user()
+    #     self.ac_deny("logout")
+    #     self.emit("logout")
+    #     self.state.display_mode = "dash"
 
-    @action
-    def logout(self):
-        logout_user()
-        self.emit("logout")
-        self.state.user_id = None
-        self.state.display_mode = None
+    @listener(event="logout")
+    def on_logout(self, event):
+        self.state.display_mode = "dash"
 
     @listener(event="login", source="*")
     def on_login(self, event: "Event"):
         # self.redirect_to(self.component("/main"))
-        self.state.display_mode = None
-        self.state.user_id = current_user.get_id()
+        # self.ac_allow("logout")
+        self.state.display_mode = "dash"
 
     def display(self):
         if self.state.display_mode == "login":
