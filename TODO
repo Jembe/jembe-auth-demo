@@ -63,19 +63,22 @@ Make wtforms better for me:
             No need for this. Action can be denied in display or mount so there is no point to check it after init.
             Forcing all ac_allow deny in init can make init to havy
 
-☐ Checking if compoennt or actions is accessible must be repeted if component state is changed
-    ☐ ac_allow(action, condition=True) shuld add rules in compoennt ac_rules to be checked when ever compoennt state is changed
-    ☐ if component ac depends on logged in user user must be part of state parameters and can be injected into
-    ☐ changing state param of one component recalculates states of all other compoments (runs their inits)
-    ☐ inject is called
-☐ ActionLink to action simplified
-☐ Support login/logout and change password
-☐ Support protection resources to only loggedin users
+✔ Checking if compoennt or actions is accessible must be repeted if component state is changed @done(21-05-11 00:29)
+    ✘ ac_allow(action, condition=True) shuld add rules in compoennt ac_rules to be checked when ever compoennt state is changed @cancelled(21-05-11 00:30)
+    ✘ if component ac depends on logged in user user must be part of state parameters and can be injected into @cancelled(21-05-11 00:30)
+    ✔ changing state param of one component recalculates states of all other compoments (runs their inits) @done(21-05-11 00:30)
+    ✔ inject is called @done(21-05-11 00:30)
+✔ ActionLink to action simplified @done(21-05-11 00:30)
+☐ Support login/logout 
+☐ Support change password
 ☐ Add user profile with photo
+☐ Support protection resources to only loggedin users
+        ☐ Add ac_child_deny and ac_child_allow for accessing subcomponents
 ☐ Add bulk delete component
 ☐ Add prev next navigation on read component
 ☐ Add bread crumb to return to groups
 ✔ Add group view, edit and delete action @done(21-04-19 22:39)
-☐ Create user, user profile and group models
+✔ Create user, user profile and group models @done(21-05-11 00:34)
 ☐ Create action flow 
 ✔ Create PageComponent with notifications menues and etc. @done(21-03-25 02:19)
+☐ Page component should suport PComonents 

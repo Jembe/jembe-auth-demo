@@ -2,6 +2,6 @@
 {% block page_content %}
     {{super()}}
     {% if component("_logout").is_accessible %}
-    {{component("_logout")}}
+        {{component()}}
     {% endif %}
 {% endblock page_content %}

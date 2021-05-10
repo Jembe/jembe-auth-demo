@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from jembe import DisplayResponse
     from flask_sqlalchemy import Model
 
-__all__ = ("CLogin", "CLogout", "CResetPassword", "CUserProfile")
+__all__ = ("CLogin", "PCLogout", "CResetPassword", "CUserProfile")
 
 
 class LoginForm(JembeForm):
@@ -78,8 +78,8 @@ class CLogin(CForm):
 
 
 @config(PComponent.Config(changes_url=False))
-class CLogout(PComponent):
-    def __init__(self, active:bool=False):
+class PCLogout(PComponent):
+    def __init__(self, active: bool = False):
         super().__init__()
 
     def init(self):
@@ -89,9 +89,10 @@ class CLogout(PComponent):
     @action
     def logout(self):
         logout_user()
-        self.ac_deny()
         self.emit("logout")
         self.state.active = False
+        self.ac_deny()
+        return True
 
     @action
     def cancel(self):
