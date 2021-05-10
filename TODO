@@ -39,6 +39,7 @@ Make wtforms better for me:
 ✘ Delete event stop propagation on down @cancelled(21-04-20 16:30)
 ✔ Add delete component @done(21-04-19 22:38)
 ✔ Store session to db or memcached @done(21-04-21 15:02)
+
 ☐ Is action accessible:
     ☐ if trying to call not accessible action in javascript display error
     ✔ if not accessible action is called in python raise exception NotFound @done(21-05-07 14:09)
@@ -61,6 +62,12 @@ Make wtforms better for me:
         ✘ if list of denied actions are changed component is redisplayed (efectivly making list of denied actions state variable) @cancelled(21-05-07 14:49)
             No need for this. Action can be denied in display or mount so there is no point to check it after init.
             Forcing all ac_allow deny in init can make init to havy
+
+☐ Checking if compoennt or actions is accessible must be repeted if component state is changed
+    ☐ ac_allow(action, condition=True) shuld add rules in compoennt ac_rules to be checked when ever compoennt state is changed
+    ☐ if component ac depends on logged in user user must be part of state parameters and can be injected into
+    ☐ changing state param of one component recalculates states of all other compoments (runs their inits)
+    ☐ inject is called
 ☐ ActionLink to action simplified
 ☐ Support login/logout and change password
 ☐ Support protection resources to only loggedin users

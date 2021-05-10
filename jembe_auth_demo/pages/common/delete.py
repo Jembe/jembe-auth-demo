@@ -1,8 +1,11 @@
 from typing import TYPE_CHECKING, Callable, Dict, Iterable, Optional, Tuple, Union
 
+from jembe.component_config import listener
+
 from .confirmation import OnConfirmationMixin, Confirmation
+from .permanent_component import PComponent
 from .notifications import Notification
-from jembe import Component, action
+from jembe import Component, action, Forbidden
 import sqlalchemy as sa
 
 if TYPE_CHECKING:
@@ -12,8 +15,10 @@ if TYPE_CHECKING:
 __all__ = ("CDelete", "action_delete_record")
 
 
-class CDelete(OnConfirmationMixin, Component):
-    class Config(Component.Config):
+class CDelete(PComponent):
+    class Config(PComponent.Config):
+        default_template = "common/delete.html"
+
         def __init__(
             self,
             db: "SQLAlchemy",
@@ -31,6 +36,8 @@ class CDelete(OnConfirmationMixin, Component):
             self.db = db
             self.model = model
             self.title = title if title else "Delete"
+            if template is None:
+                template = ("", self.default_template)
 
             super().__init__(
                 template=template,
@@ -43,12 +50,17 @@ class CDelete(OnConfirmationMixin, Component):
 
     _config: Config
 
-    def __init__(self, id: int, _record: Optional["Model"] = None) -> None:
-        self._record = _record if _record is not None and _record.id == id else None
+    def __init__(
+        self, id: int, active: bool = False, _record: Optional["Model"] = None
+    ) -> None:
+        if self.state.active:
+            self._record = _record if _record is not None and _record.id == id else None
         super().__init__()
 
     @property
     def record(self):
+        # if not self.state.active:
+        #     raise Forbidden
         if self._record is None:
             self._record = self._config.db.session.query(self._config.model).get(
                 self.state.id
@@ -56,44 +68,56 @@ class CDelete(OnConfirmationMixin, Component):
         return self._record
 
     @action
-    def delete_record(self, confirmed=False):
-        if confirmed:
-            try:
-                self._config.db.session.delete(self.record)
-                self._config.db.session.commit()
-                self.emit("delete", record=self.record, id=self.record.id)
-                self.emit(
-                    "pushNotification",
-                    notification=Notification("{} deleted".format(str(self.record))),
-                )
-            except sa.exc.SQLAlchemyError as error:
-                self._config.db.session.rollback()
-                self.emit(
-                    "pushNotification",
-                    notification=Notification(
-                        str(getattr(error, "orig", error)), "error"
-                    ),
-                )
-        return False
+    def delete_record(self):
+        # if not self.state.active:
+        #     raise Forbidden
+        try:
+            self._config.db.session.delete(self.record)
+            self._config.db.session.commit()
+            self.emit("delete", record=self.record, id=self.record.id)
+            self.emit(
+                "pushNotification",
+                notification=Notification("{} deleted".format(str(self.record))),
+            )
+        except sa.exc.SQLAlchemyError as error:
+            self._config.db.session.rollback()
+            self.emit(
+                "pushNotification",
+                notification=Notification(str(getattr(error, "orig", error)), "error"),
+            )
+
+    @action
+    def cancel(self):
+        self.state.active = False
+        self.emit("cancel")
 
     def display(self) -> "DisplayResponse":
-        self.request_confirmation()
-        # return True # ghost component does not have display and does not require parent redisplaying
-        return self.render_template_string("")
+        self.question = "Are you sure you want to delete this record?"
+        return super().display()
 
-    def request_confirmation(self):
-        self.emit(
-            "requestConfirmation",
-            confirmation=Confirmation(
-                title=self.title,
-                question="Are you sure you want to delete this record?",
-                action="delete_record",
-                params=dict(confirmed=True),
-            ),
-        )
+    # @listener(event="activate")
+    # def on_activate(self, event):
+    #     self.state.active = True
+
+    # @listener(event="deactivate")
+    # def on_deactivate(self, event):
+    #     self.state.active = False
+
+    # def request_confirmation(self):
+    #     self.emit(
+    #         "requestConfirmation",
+    #         confirmation=Confirmation(
+    #             title=self.title,
+    #             question="Are you sure you want to delete this record?",
+    #             action="delete_record",
+    #             params=dict(confirmed=True),
+    #         ),
+    #     )
 
     @property
     def title(self) -> str:
+        if not self.state.active:
+            raise Forbidden
         if isinstance(self._config.title, str):
             return self._config.title
         return self._config.title(self)

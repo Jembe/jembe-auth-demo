@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING
 from jembe import config
+from jembe.component import component
 from jembe.component_config import action, listener
 from jembe_auth_demo.models import Group, User
 from jembe_auth_demo.db import db
@@ -69,34 +70,52 @@ class CCreateGroup(CCreate):
         top_menu=[
             ActionLink(
                 lambda self: self.component(  # type:ignore
-                    "../update", id=self.record.id, _record=self.record  # type:ignore
+                    "../update", id=self.record.id, _record=self.record # type:ignore
                 ),
                 "Edit",
             ),
+            # ActionLink(lambda self: self.component("delete", active=True), "Delete")
+            ActionLink("delete", "Delete", active=True),
             # ActionLink(
             #     lambda self: self.component().call("delete_record"),  # type:ignore
             #     "Delete",
             # ),
-            ActionLink("delete_record()", "Delete")
+            # ActionLink("delete_record()", "Delete")
         ],
+        components=dict(
+            delete=(
+                CDelete,
+                CDelete.Config(
+                    db=db,
+                    model=Group,
+                    title=lambda component: "Delete: '{}'".format(
+                        component.record.title
+                    ),
+                ),
+            )
+        ),
+        inject_into_components=lambda self, cconf: dict(
+            id=self.record.id, _record=self.record
+        ),
     )
 )
 class CReadGroup(CRead):
+    pass
     # def init(self):
     #     self.ac_deny("delete_record")
-    @action
-    def delete_record(self, confirmed: bool = False):
-        action_delete_record(
-            component=self,
-            action_name="delete_record",
-            action_params=dict(confirmed=True),
-            confirmed=confirmed,
-            db=self._config.db,
-            model=self._config.model,
-            id=self.record.id,
-            record=self.record,
-        )
-        return False
+    # @action
+    # def delete_record(self, confirmed: bool = False):
+    #     action_delete_record(
+    #         component=self,
+    #         action_name="delete_record",
+    #         action_params=dict(confirmed=True),
+    #         confirmed=confirmed,
+    #         db=self._config.db,
+    #         model=self._config.model,
+    #         id=self.record.id,
+    #         record=self.record,
+    #     )
+    #     return False
 
 
 @config(
@@ -104,7 +123,7 @@ class CReadGroup(CRead):
         db=db,
         form=GroupForm,
         model=Group,
-        title=lambda component: "Group: {}".format(component.record.title),
+        title=lambda component: "Group: {}".format(component.get_record().title),
     )
 )
 class CUpdateGroup(CUpdate):
@@ -164,6 +183,6 @@ class CGroups(CCrudTable):
             id=id,
         )
 
-    @listener(event="delete", source="read")
+    @listener(event="delete", source="read/delete")
     def on_delete(self, event: "Event"):
         self.state.display_mode = None

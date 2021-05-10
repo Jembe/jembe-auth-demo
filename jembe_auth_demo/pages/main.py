@@ -1,16 +1,17 @@
 from typing import TYPE_CHECKING, Optional, List
 
-from jembe import listener
+from jembe import listener, action
 from jembe_auth_demo.jmb import jmb
+from flask_login import logout_user, current_user
 from .common import Page, ActionLink, PageBase
 from .dashboard import Dashboard
-from .auth import CGroups, CUsers, CLogin, CResetPassword, CUserProfile
+from .auth import CGroups, CUsers, CLogin, CResetPassword, CUserProfile, CLogout
 
 if TYPE_CHECKING:
     from jembe import Event
     from .common.link import Link
 
-main_menu:List["Link"] = [
+main_menu: List["Link"] = [
     ActionLink("/main/dash", "Dashboard"),
     ActionLink(
         lambda self: self.component(  # type:ignore
@@ -24,6 +25,10 @@ main_menu:List["Link"] = [
         ),
         "Groups",
     ),
+    ActionLink(lambda self: self.component("/main").call("logout"), "Logout"),
+    ActionLink("/main/reset_password", "Reset"),
+    ActionLink("/main/user_profile", "User profile"),
+    ActionLink("/main/login", "Login"),
 ]
 
 
@@ -36,11 +41,40 @@ main_menu:List["Link"] = [
             "dash": Dashboard,
             "users": CUsers,
             "groups": CGroups,
+            "user_profile": CUserProfile,
+            "login": CLogin,
+            "reset_password": CResetPassword,
         },
     ),
 )
 class MainPage(Page):
-    pass
+    def __init__(self, display_mode: Optional[str] = None, user_id: Optional[int] = None):
+        if current_user.is_authenticated:
+            self.state.user_id = current_user.get_id()
+        super().__init__(display_mode=display_mode)
+
+    def init(self):
+        if not current_user.is_authenticated:
+            self.ac_deny("logout")
+        return super().init()
+
+    @action
+    def logout(self):
+        logout_user()
+        self.emit("logout")
+        self.state.user_id = None
+        self.state.display_mode = None
+
+    @listener(event="login", source="*")
+    def on_login(self, event: "Event"):
+        # self.redirect_to(self.component("/main"))
+        self.state.display_mode = None
+        self.state.user_id = current_user.get_id()
+
+    def display(self):
+        if self.state.display_mode == "login":
+            return self.render_template(self._config.super.default_template)
+        return self.render_template(self._config.template)
 
 
 @jmb.page(
@@ -56,14 +90,19 @@ class AuthPage(Page):
     #     super().__init__(display_mode=display_mode)
     #     if not current_user.is_authenticated:
     #         self.redirect_to(self.component("/main"))
+    def init(self):
+        if not current_user.is_authenticated:
+            self.ac_deny("logout")
+        return super().init()
 
-    @listener(event="login", source="*")
-    def on_login(self, event: "Event"):
-        self.redirect_to(self.component("/main"))
+    # @listener(event="login", source="*")
+    # def on_login(self, event: "Event"):
+    #     self.redirect_to(self.component("/main"))
 
-    # @action
-    # def logout(self):
-    #     pass
+    @action
+    def logout(self):
+        logout_user()
+        return True
 
     def display(self):
         if self.state.display_mode == "login":

@@ -139,6 +139,7 @@ class ActionLink(Link):
                     cr = cr.component_reset(name)
                 else:
                     cr = cr.component(name)
+            cr.kwargs = self.params.copy()
             return cr
 
         def relative_component_reference(cstr: str, comp: "Component", *args, **kwargs):
@@ -150,6 +151,7 @@ class ActionLink(Link):
             )
             for name in c_names[1:]:
                 cr = cr.component(name)
+            cr.kwargs = self.params.copy()
             return cr
 
         if cstr.startswith("/"):

@@ -13,16 +13,13 @@ from typing import (
 from dataclasses import dataclass, field
 from uuid import uuid4
 
+from flask_login import current_user
 from jembe import Component
+from jembe.component_config import listener
 
 
 if TYPE_CHECKING:
-    from jembe import (
-        ComponentConfig,
-        ComponentRef,
-        RedisplayFlag,
-        DisplayResponse
-    )
+    from jembe import ComponentConfig, ComponentRef, RedisplayFlag, DisplayResponse
     from flask import Response
     from jembe_auth_demo.pages.common import Link
 
@@ -88,6 +85,10 @@ class CMenu(Component):
                 changes_url=changes_url,
                 url_query_params=url_query_params,
             )
+
+    @listener(event=["login", "logout"])
+    def on_login(self, event):
+        return True
 
     def display(self) -> "DisplayResponse":
         self.menu = self._config.menu.bind_to(self)
