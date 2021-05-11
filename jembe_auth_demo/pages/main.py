@@ -1,8 +1,9 @@
 from typing import TYPE_CHECKING, List
 
 from jembe import listener
+from sqlalchemy.sql.functions import current_user
 from jembe_auth_demo.jmb import jmb
-from .common import Page, ActionLink, PageBase
+from .common import Page, ActionLink
 from .dashboard import Dashboard
 from .auth import CGroups, CUsers, CLogin, CResetPassword, CUserProfile, PCLogout
 

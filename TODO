@@ -40,7 +40,7 @@ Make wtforms better for me:
 ✔ Add delete component @done(21-04-19 22:38)
 ✔ Store session to db or memcached @done(21-04-21 15:02)
 
-☐ Is action accessible:
+✔ Is action accessible: @done(21-05-11 07:44)
     ☐ if trying to call not accessible action in javascript display error
     ✔ if not accessible action is called in python raise exception NotFound @done(21-05-07 14:09)
     ✔ allow _exception listener to distignush action not accessible errors @done(21-05-07 14:09)
@@ -73,7 +73,7 @@ Make wtforms better for me:
 ☐ Support change password
 ☐ Add user profile with photo
 ☐ Support protection resources to only loggedin users
-        ☐ Add ac_child_deny and ac_child_allow for accessing subcomponents
+        ✘ Add ac_child_deny and ac_child_allow for accessing subcomponents @cancelled(21-05-11 07:44)
 ☐ Add bulk delete component
 ☐ Add prev next navigation on read component
 ☐ Add bread crumb to return to groups

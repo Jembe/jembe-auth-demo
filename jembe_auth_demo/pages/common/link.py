@@ -4,6 +4,7 @@ from uuid import uuid4
 from functools import cached_property, partial
 from urllib.parse import urlparse
 from jembe.component import component
+from jembe.component_config import ComponentConfig
 
 if TYPE_CHECKING:
     from jembe import Component, ComponentReference
@@ -93,6 +94,10 @@ class Link:
             link.callable_params[k] = v
         return link
 
+    @property
+    def is_link_to_action(self) -> bool:
+        return False
+
 
 class ActionLink(Link):
     def __init__(
@@ -173,3 +178,9 @@ class ActionLink(Link):
     @property
     def exec_name(self) -> str:
         return self.to_component_reference.exec_name
+
+    @property
+    def is_link_to_action(self) -> bool:
+        return (
+            self.to_component_reference.action != ComponentConfig.DEFAULT_DISPLAY_ACTION
+        )

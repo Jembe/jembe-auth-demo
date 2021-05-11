@@ -1,6 +1,6 @@
   <nav class="bg-white shadow-sm" 
        jmb-local="{componentsOnPage: [], activeMenues:[], mobileMenuOpen:false}" 
-       jmb-on:jembe-update-page.camel.window="$local.componentsOnPage = $jmb.componentsOnPage(); $local.activeGroups = [];">
+       jmb-on:jembe-update-page.camel.window="$local.componentsOnPage = $jmb.componentsOnPage(function(c){return c.state.active === true || c.state.active === undefined}); $local.activeGroups = [];">
     <div id="test" class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
       <div class="flex justify-between h-16">
         <div class="flex">
@@ -20,14 +20,14 @@
             <a {% if mi.url is not none %} href="{{mi.url}}" {% endif %} 
                {% if mi.jrl is not none %} jmb-on:click.stop.prevent="{{mi.jrl}}" {% endif %} 
               class="inline-flex items-center px-1 pt-1 text-sm font-medium border-b-2"
-              {% if mi.is_action_link %}
+              {% if mi.is_action_link and not mi.is_link_to_action %}
                   jmb-bind:class="{
                     'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': 
                         !$local.componentsOnPage.includes('{{mi.exec_name}}'),
                     'border-indigo-500 text-gray-900':  
                         $local.componentsOnPage.includes('{{mi.exec_name}}')
                   }"
-              {% else %}
+              {% elif not mi.is_action_link %}
                   jmb-bind:class="{
                     'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': 
                         window.location.pathname !== '{{mi.pathname}}',
@@ -35,6 +35,8 @@
                       window.location.pathname === '{{mi.pathname}}'
 
                   }"
+              {% else %}
+                  class="text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300"
               {% endif %}>
               {{mi.title}}
             </a>
