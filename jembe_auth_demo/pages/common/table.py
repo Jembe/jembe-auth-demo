@@ -13,7 +13,13 @@ from .delete import CDelete
 if TYPE_CHECKING:
     from flask_sqlalchemy import SQLAlchemy
     from sqlalchemy.sql.elements import ColumnElement
-    from jembe import Event, ComponentConfig, ComponentRef, RedisplayFlag, DisplayResponse
+    from jembe import (
+        Event,
+        ComponentConfig,
+        ComponentRef,
+        RedisplayFlag,
+        DisplayResponse,
+    )
 
 __all__ = ("CTable", "CCrudTable", "TableColumn")
 
@@ -58,8 +64,10 @@ class TableColumn:
         return value if value is not None else ""
 
 
-class CTable(OnConfirmationMixin,Component):
+class CTable(OnConfirmationMixin, Component):
     class Config(Component.Config):
+        default_template = "common/table.html"
+
         def __init__(
             self,
             db: "SQLAlchemy",
@@ -96,7 +104,6 @@ class CTable(OnConfirmationMixin,Component):
 
             self.default_filter = default_filter
 
-            self.default_template = "common/table.html"
             if template is None:
                 template = ("", self.default_template)
 
@@ -184,6 +191,9 @@ class CCrudTable(CTable):
     """
 
     class Config(CTable.Config):
+        table_template = "common/table.html"
+        default_template = "common/crud_table.html"
+
         def __init__(
             self,
             db: "SQLAlchemy",
@@ -202,8 +212,6 @@ class CCrudTable(CTable):
             changes_url: bool = True,
             url_query_params: Optional[Dict[str, str]] = None,
         ):
-            self.table_template = "common/table.html"
-            self.default_template = "common/crud_table.html"
             if template is None:
                 template = ("", self.default_template)
             super().__init__(
@@ -271,9 +279,7 @@ class CCrudTable(CTable):
 
     @listener(event="delete", source="./*")
     def on_child_deleted(self, event: "Event"):
-        if (
-            event.source_name in self._config.delete_components
-        ):
+        if event.source_name in self._config.delete_components:
             self.state.display_mode = None
             return True
 

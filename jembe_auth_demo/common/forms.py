@@ -19,6 +19,8 @@ class JembeFormMeta(FormMeta, ABCMeta):
 
 
 class JembeForm(JembeInitParamSupport, Form, metaclass=JembeFormMeta):
+    cform: "CForm"
+
     def __init__(
         self,
         formdata=None,
@@ -43,14 +45,13 @@ class JembeForm(JembeInitParamSupport, Form, metaclass=JembeFormMeta):
         return cls(data=value)
 
     def mount(self, cform: "CForm") -> "JembeForm":
+        self.cform = cform
         return self
 
-    def submit(
-        self, cform: "CForm", record: Optional["Model"] = None
-    ) -> Optional["Model"]:
+    def submit(self, record: Optional["Model"] = None) -> Optional["Model"]:
         if record is not None:
             self.populate_obj(record)
-            cform.session.add(record)
+            self.cform.session.add(record)
             return record
         return None
 

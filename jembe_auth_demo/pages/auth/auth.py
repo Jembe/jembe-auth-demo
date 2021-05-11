@@ -29,15 +29,46 @@ class LoginForm(JembeForm):
         "Password", validators=[val.DataRequired("Password is required.")]
     )
 
-    def submit(
-        self, cform: "CForm", record: Optional["Model"] = None
-    ) -> Optional["Model"]:
-        user = cform.session.query(User).filter_by(email=self.email.data).first()
+    def submit(self, record: Optional["Model"] = None) -> Optional["Model"]:
+        user = self.cform.session.query(User).filter_by(email=self.email.data).first()
         if user and user.check_password(password=self.password.data):
             login_user(user)
             return user
         else:
             raise ValueError("Invalid user/password combination")
+
+
+class PasswordResetForm(JembeForm):
+    old_password = PasswordField(
+        "Old Password", validators=[val.DataRequired("Old Password is required")]
+    )
+    new_password = PasswordField(
+        validators=[
+            val.DataRequired(),
+            val.Length(
+                min=7, max=User.password.type.length, message="Select stronger password"
+            ),
+        ]
+    )
+    confirm_password = PasswordField(
+        validators=[val.EqualTo("new_password", message="Passwords must match")]
+    )
+
+    def validate_old_password(form, field):
+        if not current_user.is_authenticated:
+            raise ValueError("In order to change password you must be logged in!")
+        if not current_user.check_password(password=field.data):
+            raise ValueError("Invalid password")
+
+    def submit(self, record: Optional["Model"] = None) -> Optional["Model"]:
+        if current_user.is_authenticated:
+            user: User = current_user._get_current_object()
+            user.set_password(self.new_password.data)
+            self.old_password.data = None
+            self.new_password.data = None
+            self.confirm_password.data = None
+            return user
+        return None
 
 
 @config(CForm.Config(db=db, form=LoginForm))
@@ -109,7 +140,8 @@ class PCLogout(PComponent):
         self.state.active = False
 
 
-class CResetPassword(Component):
+@config(CForm.Config(db=db, form=PasswordResetForm))
+class CResetPassword(CForm):
     def init(self):
         if not current_user.is_authenticated:
             self.ac_deny()
@@ -121,6 +153,17 @@ class CResetPassword(Component):
     @listener(event="login")
     def on_login(self, event):
         self.ac_allow()
+
+    def get_record(self) -> Optional[Union["Model", dict]]:
+        return (
+            current_user._get_current_object()
+            if current_user.is_authenticated
+            else None
+        )
+
+    @action
+    def reset_password(self):
+        return self.submit_form("reset_password", submit_message="Password changed")
 
 
 class CUserProfile(Component):

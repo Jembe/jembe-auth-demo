@@ -114,9 +114,9 @@ class CForm(CFormBase):
             try:
                 record = self.get_record()
                 if record is not None and not isinstance(record, dict):
-                    self.submited_record = self.state.form.submit(self, record)
+                    self.submited_record = self.state.form.submit(record)
                 else:
-                    self.submited_record = self.state.form.submit(self)
+                    self.submited_record = self.state.form.submit()
                 self.session.commit()
                 if submit_event is not None:
                     se_params = (

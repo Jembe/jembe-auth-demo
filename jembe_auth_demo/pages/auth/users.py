@@ -85,9 +85,9 @@ class CreateUserForm(UserForm):
     )
 
     def submit(
-        self, cform: "CForm", record: Optional["Model"] = None
+        self, record: Optional["Model"] = None
     ) -> Optional["Model"]:
-        user: Optional[User] = super().submit(cform=cform, record=record)
+        user: Optional[User] = super().submit(record)
         if user is not None:
             user.set_password(self.password.data)
         return user
@@ -100,9 +100,9 @@ class UpdateUserForm(UserForm):
     )
 
     def submit(
-        self, cform: "CForm", record: Optional["Model"] = None
+        self, record: Optional["Model"] = None
     ) -> Optional["Model"]:
-        user: Optional[User] = super().submit(cform, record=record)
+        user: Optional[User] = super().submit(record)
         if user is not None and self.new_password.data:
             user.set_password(self.new_password.data)
         return user
