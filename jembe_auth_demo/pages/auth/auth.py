@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING, Optional, Union
 from flask_login.utils import logout_user
+from jembe.component_config import listener
 from wtforms import StringField, PasswordField, validators as val
 from flask_login import login_user, current_user
 from jembe import Component, action, config
@@ -45,6 +46,10 @@ class CLogin(CForm):
         if current_user.is_authenticated:
             self.ac_deny()
 
+    @listener(event="logout")
+    def on_logout(self, event):
+        self.ac_deny()
+
     def get_record(self) -> Optional[Union["Model", dict]]:
         return None
 
@@ -70,6 +75,7 @@ class CLogin(CForm):
                     "error",
                 ),
             )
+        self.ac_deny()
         return True
 
     def display(self) -> "DisplayResponse":
@@ -85,6 +91,10 @@ class PCLogout(PComponent):
     def init(self):
         if not current_user.is_authenticated:
             self.ac_deny()
+
+    @listener(event="login")
+    def on_login(self, event):
+        self.ac_allow()
 
     @action
     def logout(self):
@@ -104,8 +114,24 @@ class CResetPassword(Component):
         if not current_user.is_authenticated:
             self.ac_deny()
 
+    @listener(event="logout")
+    def on_logout(self, event):
+        self.ac_deny()
+
+    @listener(event="login")
+    def on_login(self, event):
+        self.ac_allow()
+
 
 class CUserProfile(Component):
     def init(self):
         if not current_user.is_authenticated:
             self.ac_deny()
+
+    @listener(event="logout")
+    def on_logout(self, event):
+        self.ac_deny()
+
+    @listener(event="login")
+    def on_login(self, event):
+        self.ac_allow()
