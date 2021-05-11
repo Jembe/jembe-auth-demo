@@ -58,8 +58,3 @@ class MainPage(Page):
         # self.redirect_to(self.component("/main"))
         # self.ac_allow("logout")
         self.state.display_mode = "dash"
-
-    def display(self):
-        if self.state.display_mode == "login":
-            return self.render_template(self._config.super.default_template)
-        return self.render_template(self._config.template)

@@ -1,4 +1,9 @@
-{% extends   _config.default_template %}
+{% if display_mode == "login" %}
+    {% extends  super._config.default_template %}
+{% else %}
+    {% extends   _config.default_template %}
+{% endif %}
+
 {% block page_content %}
     {{super()}}
     {% if component("_logout").is_accessible %}

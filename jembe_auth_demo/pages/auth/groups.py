@@ -70,17 +70,11 @@ class CCreateGroup(CCreate):
         top_menu=[
             ActionLink(
                 lambda self: self.component(  # type:ignore
-                    "../update", id=self.record.id, _record=self.record # type:ignore
+                    "../update", id=self.record.id, _record=self.record  # type:ignore
                 ),
                 "Edit",
             ),
-            # ActionLink(lambda self: self.component("delete", active=True), "Delete")
             ActionLink("delete", "Delete", active=True),
-            # ActionLink(
-            #     lambda self: self.component().call("delete_record"),  # type:ignore
-            #     "Delete",
-            # ),
-            # ActionLink("delete_record()", "Delete")
         ],
         components=dict(
             delete=(
@@ -95,28 +89,12 @@ class CCreateGroup(CCreate):
             )
         ),
         inject_into_components=lambda self, cconf: dict(
-            id=self.record.id, _record=self.record
-        ),
+            delete=dict(id=self.record.id, _record=self.record)
+        ).get(cconf.name, dict()),
     )
 )
 class CReadGroup(CRead):
     pass
-    # def init(self):
-    #     self.ac_deny("delete_record")
-    # @action
-    # def delete_record(self, confirmed: bool = False):
-    #     action_delete_record(
-    #         component=self,
-    #         action_name="delete_record",
-    #         action_params=dict(confirmed=True),
-    #         confirmed=confirmed,
-    #         db=self._config.db,
-    #         model=self._config.model,
-    #         id=self.record.id,
-    #         record=self.record,
-    #     )
-    #     return False
-
 
 @config(
     CUpdate.Config(
@@ -129,16 +107,6 @@ class CReadGroup(CRead):
 class CUpdateGroup(CUpdate):
     pass
 
-
-@config(
-    CDelete.Config(
-        db=db,
-        model=Group,
-        title=lambda component: 'Delete "{}"?'.format(component.record.title),
-    )
-)
-class CDeleteGroup(CDelete):
-    pass
 
 
 @config(
@@ -158,7 +126,7 @@ class CDeleteGroup(CDelete):
         record_menu=[
             ActionLink(lambda self, record: self.component("read", id=record.id, _record=record), "View"),  # type: ignore
             ActionLink(lambda self, record: self.component("update", id=record.id, _record=record), "Edit"),  # type: ignore
-            ActionLink(lambda self, record: self.component().call("delete_record", id=record.id), "Delete"),  # type: ignore
+            ActionLink(lambda self, record: self.component("delete", id=record.id, _record=record, active=True), "Delete"),  # type: ignore
         ],
         # field_links = {}
         # bulk_menu =[]
@@ -166,23 +134,11 @@ class CDeleteGroup(CDelete):
             create=CCreateGroup,
             read=CReadGroup,
             update=CUpdateGroup,
-            # delete=CDeleteGroup,
+            delete=(CDelete, CDelete.Config(db=db, model=Group, title=lambda comp: "Delete '{}'?".format(comp.record.title))),
         ),
     )
 )
 class CGroups(CCrudTable):
-    @action
-    def delete_record(self, id: int, confirmed: bool = False):
-        return action_delete_record(
-            component=self,
-            action_name="delete_record",
-            action_params=dict(id=id, confirmed=True),
-            confirmed=confirmed,
-            db=self._config.db,
-            model=Group,
-            id=id,
-        )
-
     @listener(event="delete", source="read/delete")
     def on_delete(self, event: "Event"):
         self.state.display_mode = None

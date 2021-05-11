@@ -51,7 +51,7 @@ class CDelete(PComponent):
     _config: Config
 
     def __init__(
-        self, id: int, active: bool = False, _record: Optional["Model"] = None
+        self, id: int = 0, active: bool = False, _record: Optional["Model"] = None
     ) -> None:
         if self.state.active:
             self._record = _record if _record is not None and _record.id == id else None
@@ -85,6 +85,8 @@ class CDelete(PComponent):
                 "pushNotification",
                 notification=Notification(str(getattr(error, "orig", error)), "error"),
             )
+        self.state.active = False
+        return True
 
     @action
     def cancel(self):
@@ -94,25 +96,6 @@ class CDelete(PComponent):
     def display(self) -> "DisplayResponse":
         self.question = "Are you sure you want to delete this record?"
         return super().display()
-
-    # @listener(event="activate")
-    # def on_activate(self, event):
-    #     self.state.active = True
-
-    # @listener(event="deactivate")
-    # def on_deactivate(self, event):
-    #     self.state.active = False
-
-    # def request_confirmation(self):
-    #     self.emit(
-    #         "requestConfirmation",
-    #         confirmation=Confirmation(
-    #             title=self.title,
-    #             question="Are you sure you want to delete this record?",
-    #             action="delete_record",
-    #             params=dict(confirmed=True),
-    #         ),
-    #     )
 
     @property
     def title(self) -> str:
