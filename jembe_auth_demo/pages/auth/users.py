@@ -8,7 +8,6 @@ from jembe_auth_demo.pages.common import (
     TableColumn as TC,
     CCreate,
     ActionLink,
-    CRead,
     CUpdate,
     CDelete,
 )
@@ -22,6 +21,7 @@ from wtforms import (
 )
 from wtforms.fields.html5 import EmailField
 import sqlalchemy as sa
+from flask_login import current_user
 
 if TYPE_CHECKING:
     from jembe import Component
@@ -84,9 +84,7 @@ class CreateUserForm(UserForm):
         validators=[validators.EqualTo("password", message="Passwords must match")]
     )
 
-    def submit(
-        self, record: Optional["Model"] = None
-    ) -> Optional["Model"]:
+    def submit(self, record: Optional["Model"] = None) -> Optional["Model"]:
         user: Optional[User] = super().submit(record)
         if user is not None:
             user.set_password(self.password.data)
@@ -99,9 +97,7 @@ class UpdateUserForm(UserForm):
         validators=[validators.EqualTo("new_password", message="Passwords must match")]
     )
 
-    def submit(
-        self, record: Optional["Model"] = None
-    ) -> Optional["Model"]:
+    def submit(self, record: Optional["Model"] = None) -> Optional["Model"]:
         user: Optional[User] = super().submit(record)
         if user is not None and self.new_password.data:
             user.set_password(self.new_password.data)
@@ -176,12 +172,10 @@ class UpdateUserForm(UserForm):
     )
 )
 class CUsers(CCrudTable):
-    # def is_accesible(self):
-    #     self.deny()
-    #     if current_user == self.state.user_id:
-    #         self.allow('display')
-    #     if self.state.owner !=fasdf:
-    #         self.deny('delete')
+    def init(self):
+        if not current_user.is_authenticated:
+            self.ac_deny()
+
     @listener(event="delete", source="read")
     def on_delete(self, event):
         self.state.display_mode = None

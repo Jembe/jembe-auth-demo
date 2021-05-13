@@ -17,6 +17,7 @@ from jembe_auth_demo.pages.common import (
 import sqlalchemy as sa
 from wtforms import StringField, TextAreaField, validators, SelectMultipleField
 from jembe_auth_demo.common import JembeForm
+from flask_login import current_user
 
 if TYPE_CHECKING:
     from jembe import Component, Event
@@ -96,6 +97,7 @@ class CCreateGroup(CCreate):
 class CReadGroup(CRead):
     pass
 
+
 @config(
     CUpdate.Config(
         db=db,
@@ -106,7 +108,6 @@ class CReadGroup(CRead):
 )
 class CUpdateGroup(CUpdate):
     pass
-
 
 
 @config(
@@ -134,11 +135,22 @@ class CUpdateGroup(CUpdate):
             create=CCreateGroup,
             read=CReadGroup,
             update=CUpdateGroup,
-            delete=(CDelete, CDelete.Config(db=db, model=Group, title=lambda comp: "Delete '{}'?".format(comp.record.title))),
+            delete=(
+                CDelete,
+                CDelete.Config(
+                    db=db,
+                    model=Group,
+                    title=lambda comp: "Delete '{}'?".format(comp.record.title),
+                ),
+            ),
         ),
     )
 )
 class CGroups(CCrudTable):
+    def init(self):
+        if not current_user.is_authenticated:
+            self.ac_deny()
+
     @listener(event="delete", source="read/delete")
     def on_delete(self, event: "Event"):
         self.state.display_mode = None

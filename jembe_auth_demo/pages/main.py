@@ -5,7 +5,15 @@ from sqlalchemy.sql.functions import current_user
 from jembe_auth_demo.jmb import jmb
 from .common import Page, ActionLink
 from .dashboard import Dashboard
-from .auth import CGroups, CUsers, CLogin, CResetPassword, CUserProfile, PCLogout
+from .auth import (
+    CGroups,
+    CUsers,
+    CLogin,
+    CResetPassword,
+    CUserProfile,
+    PCLogout,
+    CEditUserProfile,
+)
 
 if TYPE_CHECKING:
     from jembe import Event
@@ -43,6 +51,7 @@ main_menu: List["Link"] = [
             "users": CUsers,
             "groups": CGroups,
             "user_profile": CUserProfile,
+            "user_profile_edit": CEditUserProfile,
             "login": CLogin,
             "_logout": PCLogout,
             "reset_password": CResetPassword,
@@ -59,3 +68,11 @@ class MainPage(Page):
         # self.redirect_to(self.component("/main"))
         # self.ac_allow("logout")
         self.state.display_mode = "dash"
+
+    @listener(event="save", source="user_profile_edit")
+    def on_change_user_profile(self, event: "Event"):
+        self.state.display_mode = "user_profile"
+
+    @listener(event="cancel", source="user_profile_edit")
+    def on_cancel_user_profile(self, event: "Event"):
+        self.state.display_mode = "user_profile"

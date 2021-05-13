@@ -1,11 +1,14 @@
+from jembe_auth_demo.pages.common.form import CFormBase
+from jembe_auth_demo.pages.common.link import ActionLink
 from typing import TYPE_CHECKING, Optional, Union
 from flask_login.utils import logout_user
 from jembe.component_config import listener
-from wtforms import StringField, PasswordField, validators as val
+from wtforms import StringField, PasswordField, FileField, validators as val
+from wtforms.fields.html5 import EmailField
 from flask_login import login_user, current_user
 from jembe import Component, action, config
 from jembe_auth_demo.common import JembeForm
-from jembe_auth_demo.pages.common import CForm, Notification, PComponent
+from jembe_auth_demo.pages.common import CForm, Notification, PComponent, CFormBase
 from jembe_auth_demo.db import db
 from jembe_auth_demo.models import User
 from markupsafe import Markup
@@ -14,7 +17,7 @@ if TYPE_CHECKING:
     from jembe import DisplayResponse
     from flask_sqlalchemy import Model
 
-__all__ = ("CLogin", "PCLogout", "CResetPassword", "CUserProfile")
+__all__ = ("CLogin", "PCLogout", "CResetPassword", "CUserProfile", "CEditUserProfile")
 
 
 class LoginForm(JembeForm):
@@ -70,6 +73,33 @@ class PasswordResetForm(JembeForm):
             return user
         return None
 
+
+class UserProfileForm(JembeForm):
+    first_name = StringField(
+        validators=[
+            val.DataRequired(),
+            val.Length(max=User.first_name.type.length),
+        ]
+    )
+    last_name = StringField(
+        validators=[
+            val.DataRequired(),
+            val.Length(max=User.last_name.type.length),
+        ]
+    )
+
+    email = EmailField(
+        validators=[
+            val.DataRequired(),
+            val.Email(),
+            val.Length(max=User.email.type.length),
+        ]
+    )
+
+    def mount(self, cform: "CForm") -> "JembeForm":
+        if isinstance(cform, CUserProfile):
+            self.set_readonly_all()
+        return super().mount(cform)
 
 @config(CForm.Config(db=db, form=LoginForm))
 class CLogin(CForm):
@@ -166,7 +196,16 @@ class CResetPassword(CForm):
         return self.submit_form("reset_password", submit_message="Password changed")
 
 
-class CUserProfile(Component):
+@config(
+    CForm.Config(
+        db=db,
+        form=UserProfileForm,
+        title=lambda self: "User Profile: {} {}".format(
+            self.get_record().first_name, self.get_record().last_name
+        ),
+    )
+)
+class CUserProfile(CForm):
     def init(self):
         if not current_user.is_authenticated:
             self.ac_deny()
@@ -178,3 +217,56 @@ class CUserProfile(Component):
     @listener(event="login")
     def on_login(self, event):
         self.ac_allow()
+
+    def get_record(self) -> Optional[Union["Model", dict]]:
+        return current_user._get_current_object()
+
+
+@config(
+    CForm.Config(
+        db=db,
+        form=UserProfileForm,
+        title=lambda self: "Update Profile: {} {}".format(
+            self.get_record().first_name, self.get_record().last_name
+        ),
+    )
+)
+class CEditUserProfile(CForm):
+    def __init__(self, form: Optional[JembeForm] = None, is_modified: bool = False):
+        super().__init__(form=form)
+
+    def init(self):
+        if not current_user.is_authenticated:
+            self.ac_deny()
+
+    @listener(event="logout")
+    def on_logout(self, event):
+        self.ac_deny()
+
+    @listener(event="login")
+    def on_login(self, event):
+        self.ac_allow()
+
+    def get_record(self) -> Optional[Union["Model", dict]]:
+        return current_user._get_current_object()
+
+    @action
+    def save(self) -> Optional[bool]:
+        if self.submit_form(
+            "save",
+            lambda c: dict(record=c.submited_record, record_id=c.submited_record.id),
+            lambda c: "{} saved".format(str(c.submited_record)),
+        ):
+            # don't redisplay component
+            return False
+        return True
+
+    @action
+    def cancel(self, confirmed=False):
+        if self.state.is_modified and not confirmed:
+            self.request_confirmation(
+                "cancel", "Cancel Update", "Are you sure, all changes will be lost?"
+            )
+        else:
+            self.emit("cancel", record_id=self.get_record().id, record=self.get_record())
+            return False

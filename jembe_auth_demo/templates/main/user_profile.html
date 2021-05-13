@@ -1,1 +1,11 @@
-<h1>User Profile</h1>
+{% extends _config.default_template %}
+{% block top_menu %}
+    {% if component("../user_profile_edit").is_accessible %}
+    <button 
+        {% if component().url is not none %} href="{{component().url}}" {% endif %} 
+        {% if component().jrl is not none %} jmb-on:click.stop.prevent="{{component().jrl}}" {% endif %} 
+        class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 rounded-l-md rounded-r-md">
+        Edit
+    </button>
+    {% endif %}
+{% endblock top_menu %}

@@ -3,20 +3,9 @@
         {{title}}
     </h1>
     <div class="flex">
-    {% if top_menu.items %}
     <div class="relative z-0 inline-flex ml-6 rounded-md shadow-sm">
-      {% for mi in top_menu.items %}
-      {% if mi.is_accessible %}
-      <button 
-          {% if mi.url is not none %} href="{{mi.url}}" {% endif %} 
-          {% if mi.jrl is not none %} jmb-on:click.stop.prevent="{{mi.jrl}}" {% endif %} 
-          class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 {% if loop.first %} rounded-l-md {%endif%} {% if not loop.first %} -ml-px  {% endif  %} {%if loop.last %}  rounded-r-md  {% endif %}">
-        {{mi.title}}
-      </button>
-      {% endif %}
-      {% endfor %}
+    {% block top_menu %}{% endblock top_menu %}
     </div>
-    {% endif %}
     </div>
   </div>
 </header>
@@ -33,9 +22,14 @@
         <div class="sm:col-span-3">
         <label for="{{field.name}}" class="block text-sm font-medium text-gray-700">{{field.label}}</label>
         {% if not field.errors %}
-        
         <div class="mt-1">
-          {{field(**{"id":false, "class":"shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"})}}
+          {% if field.render_kw.disabled == True %}
+            {{field(**{"id":false, "class":"shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"})}}
+          {% elif is_modified is defined %}
+            {{field(**{"jmb-on:change.defer":"form." + field.name + " =  $self.value", "id":false, "class":"block w-full pr-10   border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500  sm:text-sm"})}}
+          {% else %}
+            {{field(**{"jmb-model":field.name, "id":false, "class":"block w-full pr-10   border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500  sm:text-sm"})}}
+          {% endif %}
         </div>
         {% else %}
         <div class="relative mt-1 rounded-md shadow-sm">
