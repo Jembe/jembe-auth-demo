@@ -69,8 +69,8 @@ Make wtforms better for me:
     ✔ changing state param of one component recalculates states of all other compoments (runs their inits) @done(21-05-11 00:30)
     ✔ inject is called @done(21-05-11 00:30)
 ✔ ActionLink to action simplified @done(21-05-11 00:30)
-☐ Support login/logout 
-☐ Support change password
+✔ Support login/logout @done(21-05-18 10:19)
+✔ Support change password @done(21-05-18 10:19)
 ☐ Add user profile with photo
 ☐ Support protection resources to only loggedin users
         ✘ Add ac_child_deny and ac_child_allow for accessing subcomponents @cancelled(21-05-11 07:44)

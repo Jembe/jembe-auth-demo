@@ -35,6 +35,9 @@
         {% if not field.errors %}
         
         <div class="mt-1">
+          {% if field.is_jembe_file_field %}
+            <a href="{{field.data.url}}">{{field.data.path}}</a> 
+          {%endif%}
           {{field(**{"id":false, "class":"shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"})}}
         </div>
         {% else %}

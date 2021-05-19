@@ -1,7 +1,7 @@
 from jembe_auth_demo.pages.common.read import CReadWithDelete
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING, Union
 from jembe_auth_demo.common.forms import JembeForm
-from jembe import config, listener
+from jembe import config, listener, get_storage, File
 from jembe_auth_demo.db import db
 from jembe_auth_demo.pages.common import (
     CCrudTable,
@@ -18,17 +18,31 @@ from wtforms import (
     BooleanField,
     SelectMultipleField,
     validators,
+    FileField,
 )
+from wtforms.widgets import FileInput
 from wtforms.fields.html5 import EmailField
 import sqlalchemy as sa
 from flask_login import current_user
 
 if TYPE_CHECKING:
-    from jembe import Component
+    from jembe import Component, Storage
     from jembe_auth_demo.pages.common import CForm
     from flask_sqlalchemy import Model
 
 __all__ = ("CUsers",)
+
+
+class JembeFileField(FileField):
+    is_jembe_file_field = True
+
+    def process_data(self, value):
+        if value is None:
+            self.data = None
+        elif isinstance(value, File):
+            self.data = value
+        else:
+            self.data = File.load_init_param(value)
 
 
 class UserForm(JembeForm):
@@ -55,6 +69,8 @@ class UserForm(JembeForm):
     active = BooleanField(default=True)
     groups_ids = SelectMultipleField(coerce=int)
 
+    photo = JembeFileField()
+
     def mount(self, component: "Component"):
         if self.is_readonly:
             self.set_readonly_all()
@@ -68,7 +84,25 @@ class UserForm(JembeForm):
             self.groups_ids.choices = [
                 (g.id, g.title) for g in db.session.query(Group)[:100]
             ]
+
+        if self.photo.data and self.photo.data.is_just_uploaded():
+            if self.photo.validate(self):
+                self.photo.data.move_to_temp()
+            else:
+                self.photo.data = None
         return super().mount(component)
+
+    def submit(self, record: Optional["Model"] = None) -> Optional["Model"]:
+        if self.photo.data and self.photo.data.in_temp_storage():
+            self.photo.data.move_to_public()
+        if record and record.photo != self.photo.data:
+            record.photo.remove()
+            record.photo = None
+        return super().submit(record=record)
+
+    def cancel(self, record):
+        if self.photo.data and self.photo.data.in_temp_storage():
+            self.photo.data.remove()
 
 
 class CreateUserForm(UserForm):

@@ -1,13 +1,39 @@
+from typing import Any, Union
 from sqlalchemy.ext.associationproxy import association_proxy
 from werkzeug.security import check_password_hash, generate_password_hash
+from wtforms.validators import Length
 from jembe_auth_demo.db import db
 from flask_login import UserMixin
 import sqlalchemy as sa
+from sqlalchemy.sql import operators
+from jembe import File, Storage
+from flask import json
 
 __all__ = (
     "User",
     "Group",
 )
+
+
+class SaFile(sa.TypeDecorator):
+    impl = sa.VARCHAR
+    cache_ok = True
+
+    def coerce_compared_value(self, op, value):
+        if op in (operators.like_op, operators.notlike_op):
+            return sa.String()
+        return self
+
+    def process_bind_param(self, value, dialect):
+        if value is not None:
+            value = json.dumps(File.dump_init_param(value))
+        return value
+
+    def process_result_value(self, value, dialect):
+        if value is not None:
+            value = File.load_init_param(json.loads(value))
+        return value
+
 
 users_groups = db.Table(
     "users_groups",
@@ -45,6 +71,8 @@ class User(UserMixin, db.Model):
     groups_ids = association_proxy(
         "groups", "id", creator=lambda id: db.session.query(Group).get(id)
     )
+
+    photo = sa.Column(SaFile())
 
     @property
     def is_active(self):

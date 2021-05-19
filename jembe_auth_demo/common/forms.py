@@ -38,7 +38,14 @@ class JembeForm(JembeInitParamSupport, Form, metaclass=JembeFormMeta):
 
     @classmethod
     def dump_init_param(cls, value: Any) -> Any:
-        return value.data if value is not None else dict()
+        return (
+            {
+                k: v.dump_init_param(v) if isinstance(v, JembeInitParamSupport) else v
+                for k, v in value.data.items()
+            }
+            if value is not None
+            else dict()
+        )
 
     @classmethod
     def load_init_param(cls, value: Any) -> Any:
