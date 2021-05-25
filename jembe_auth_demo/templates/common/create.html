@@ -42,7 +42,11 @@
         
         <div class="mt-1">
           {% if field.is_jembe_file_field %}
+            {% if field.thumbnail() %}
+            <a href="{{field.data.url}}" target="_blank"><img src="{{field.thumbnail().url}}" alt="thumbnail"></a> 
+            {% else %}
             <a href="{{field.data.url}}">{{field.data.path}}</a> 
+            {% endif %}
             {{field(**{"jmb-on:change.defer":"form." + field.name + " =  $self.files[0];is_modified=true", "id":false, "class":"shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"})}}
           {% else %}
             {{field(**{"jmb-on:change.defer":"form." + field.name + " = $self.value;is_modified=true", "id":false, "class":"shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"})}}

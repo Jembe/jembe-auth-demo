@@ -24,6 +24,7 @@ from wtforms.widgets import FileInput
 from wtforms.fields.html5 import EmailField
 import sqlalchemy as sa
 from flask_login import current_user
+from PIL import Image
 
 if TYPE_CHECKING:
     from jembe import Component, Storage
@@ -43,6 +44,64 @@ class JembeFileField(FileField):
             self.data = value
         else:
             self.data = File.load_init_param(value)
+
+
+class JembePhotoField(JembeFileField):
+    def __init__(
+        self,
+        label=None,
+        validators=None,
+        thumbnail_size=(400, 400),
+        filters=tuple(),
+        description="",
+        id=None,
+        default=None,
+        widget=None,
+        render_kw=None,
+        _form=None,
+        _name=None,
+        _prefix="",
+        _translations=None,
+        _meta=None,
+    ):
+        super().__init__(
+            label=label,
+            validators=validators,
+            filters=filters,
+            description=description,
+            id=id,
+            default=default,
+            widget=widget,
+            render_kw=render_kw,
+            _form=_form,
+            _name=_name,
+            _prefix=_prefix,
+            _translations=_translations,
+            _meta=_meta,
+        )
+        self._thumbnail_size = thumbnail_size
+
+    def thumbnail(self) -> Optional["File"]:
+        if self.data:
+            thumb = self.data.get_cache_version(
+                "thumbnail_{}_{}.jpg".format(*self._thumbnail_size)
+            )
+            if not thumb.exists():
+                try:
+                    with Image.open(self.data.open(mode="rb")) as img:
+                        img.verify()
+                except Exception:
+                    return None
+                with Image.open(self.data.open(mode="rb")) as img:
+                    if img.mode != "RGB":
+                        img = img.convert("RGB")
+                    img.thumbnail(self._thumbnail_size)
+                    with thumb.open("wb") as tfo:
+                        img.save(tfo, "JPEG")
+                        return thumb
+            else:
+                return thumb
+        return None
 
 
 class UserForm(JembeForm):
@@ -69,7 +128,7 @@ class UserForm(JembeForm):
     active = BooleanField(default=True)
     groups_ids = SelectMultipleField(coerce=int)
 
-    photo = JembeFileField()
+    photo = JembePhotoField()
 
     def mount(self, component: "Component"):
         if self.is_readonly:
@@ -86,6 +145,8 @@ class UserForm(JembeForm):
             ]
 
         if self.photo.data and self.photo.data.is_just_uploaded():
+            # if new file is uploaded validate it and move to temp storage
+            # or set it to None
             if self.photo.validate(self):
                 self.photo.data.move_to_temp()
             else:
@@ -94,15 +155,13 @@ class UserForm(JembeForm):
 
     def submit(self, record: Optional["Model"] = None) -> Optional["Model"]:
         if self.photo.data and self.photo.data.in_temp_storage():
+            # move photo in public storage for permanent keep
             self.photo.data.move_to_public()
-        if record and record.photo != self.photo.data:
+        if record and record.photo and record.photo != self.photo.data:
+            # delete old photo when it's replaced with new one
             record.photo.remove()
             record.photo = None
         return super().submit(record=record)
-
-    def cancel(self, record):
-        if self.photo.data and self.photo.data.in_temp_storage():
-            self.photo.data.remove()
 
 
 class CreateUserForm(UserForm):
