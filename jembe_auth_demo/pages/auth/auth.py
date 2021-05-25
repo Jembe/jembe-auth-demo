@@ -1,5 +1,3 @@
-from jembe_auth_demo.pages.common.form import CFormBase
-from jembe_auth_demo.pages.common.link import ActionLink
 from typing import TYPE_CHECKING, Optional, Union
 from flask_login.utils import logout_user
 from jembe.component_config import listener
@@ -7,7 +5,7 @@ from wtforms import StringField, PasswordField, FileField, validators as val
 from wtforms.fields.html5 import EmailField
 from flask_login import login_user, current_user
 from jembe import Component, action, config
-from jembe_auth_demo.common import JembeForm
+from jembe_auth_demo.common import JembeForm, JembeImageField
 from jembe_auth_demo.pages.common import CForm, Notification, PComponent, CFormBase
 from jembe_auth_demo.db import db
 from jembe_auth_demo.models import User
@@ -95,11 +93,27 @@ class UserProfileForm(JembeForm):
             val.Length(max=User.email.type.length),
         ]
     )
+    photo = JembeImageField()
 
     def mount(self, cform: "CForm") -> "JembeForm":
         if isinstance(cform, CUserProfile):
             self.set_readonly_all()
+
+        if self.photo.data and self.photo.data.is_just_uploaded():
+            if self.photo.validate(self):
+                self.photo.data.move_to_temp()
+            else:
+                self.photo.data = None
         return super().mount(cform)
+
+    def submit(self, record: Optional["Model"] = None) -> Optional["Model"]:
+        if self.photo.data and self.photo.data.in_temp_storage():
+            self.photo.data.move_to_public()
+        if record and record.photo and record.photo != self.photo.data:
+            record.photo.remove()
+            record.photo = None
+        return super().submit(record=record)
+
 
 @config(CForm.Config(db=db, form=LoginForm))
 class CLogin(CForm):
@@ -268,5 +282,7 @@ class CEditUserProfile(CForm):
                 "cancel", "Cancel Update", "Are you sure, all changes will be lost?"
             )
         else:
-            self.emit("cancel", record_id=self.get_record().id, record=self.get_record())
+            self.emit(
+                "cancel", record_id=self.get_record().id, record=self.get_record()
+            )
             return False

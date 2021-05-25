@@ -23,13 +23,27 @@
         <label for="{{field.name}}" class="block text-sm font-medium text-gray-700">{{field.label}}</label>
         {% if not field.errors %}
         <div class="mt-1">
-          {% if field.render_kw.disabled == True %}
-            {{field(**{"id":false, "class":"shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"})}}
-          {% elif is_modified is defined %}
-            {{field(**{"jmb-on:change.defer":"form." + field.name + " =  $self.value", "id":false, "class":"block w-full pr-10   border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500  sm:text-sm"})}}
-          {% else %}
-            {{field(**{"jmb-model":field.name, "id":false, "class":"block w-full pr-10   border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500  sm:text-sm"})}}
-          {% endif %}
+          {% if field.is_jembe_file_field %}
+            {% if field.thumbnail() %}
+            <a href="{{field.data.url}}" target="_blank"><img src="{{field.thumbnail().url}}" alt="thumbnail"></a> 
+            {% else %}
+            <a href="{{field.data.url}}">{{field.data.path}}</a> 
+            {% endif %}
+            {% if field.render_kw.disabled == True %}
+            {% elif is_modified is defined %}
+              {{field(**{"jmb-on:change.defer":"form." + field.name + " =  $self.files[0];is_modified=true", "id":false, "class":"block w-full pr-10   border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500  sm:text-sm"})}}
+            {% else %}
+              {{field(**{"jmb-on:change.defer":"form." +field.name + " = $self.files[0]", "id":false, "class":"block w-full pr-10   border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500  sm:text-sm"})}}
+            {% endif %}
+          {%else%}
+            {% if field.render_kw.disabled == True %}
+              {{field(**{"id":false, "class":"shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"})}}
+            {% elif is_modified is defined %}
+              {{field(**{"jmb-on:change.defer":"form." + field.name + " =  $self.value", "id":false, "class":"block w-full pr-10   border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500  sm:text-sm"})}}
+            {% else %}
+              {{field(**{"jmb-on:change.defer":"form." +field.name + " = $self.value", "id":false, "class":"block w-full pr-10   border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500  sm:text-sm"})}}
+            {% endif %}
+          {%endif%}
         </div>
         {% else %}
         <div class="relative mt-1 rounded-md shadow-sm">
