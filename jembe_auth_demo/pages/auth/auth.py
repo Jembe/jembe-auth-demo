@@ -85,7 +85,6 @@ class UserProfileForm(JembeForm):
             val.Length(max=User.last_name.type.length),
         ]
     )
-
     email = EmailField(
         validators=[
             val.DataRequired(),
@@ -100,16 +99,16 @@ class UserProfileForm(JembeForm):
             self.set_readonly_all()
 
         if self.photo.data and self.photo.data.is_just_uploaded():
-            if self.photo.validate(self):
-                self.photo.data.move_to_temp()
-            else:
-                self.photo.data = None
+            # if new file is uploaded move to temp storage
+            self.photo.data.move_to_temp()
         return super().mount(cform)
 
     def submit(self, record: Optional["Model"] = None) -> Optional["Model"]:
         if self.photo.data and self.photo.data.in_temp_storage():
+            # move file in public storage 
             self.photo.data.move_to_public()
         if record and record.photo and record.photo != self.photo.data:
+            # delete old file associated with user profile
             record.photo.remove()
             record.photo = None
         return super().submit(record=record)
